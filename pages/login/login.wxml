@@ -21,7 +21,10 @@
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="{{showLoginPassword ? 'text' : 'password'}}" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
+          <!-- 隐藏密码输入框 -->
+          <input wx:if="{{!showLoginPassword}}" class="input" type="password" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
+          <!-- 显示密码输入框 -->
+          <input wx:else class="input" type="text" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
           <view class="password-toggle" bindtap="toggleLoginPasswordVisibility">
             <text class="toggle-icon">{{showLoginPassword ? '👁️' : '👁️‍🗨️'}}</text>
           </view>
@@ -37,14 +40,20 @@
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="{{showRegisterPassword ? 'text' : 'password'}}" placeholder="请输入密码（至少6个字符）" value="{{registerPassword}}" bindinput="onRegisterPasswordInput" />
+          <!-- 隐藏密码输入框 -->
+          <input wx:if="{{!showRegisterPassword}}" class="input" type="password" placeholder="请输入密码（至少6个字符）" value="{{registerPassword}}" bindinput="onRegisterPasswordInput" />
+          <!-- 显示密码输入框 -->
+          <input wx:else class="input" type="text" placeholder="请输入密码（至少6个字符）" value="{{registerPassword}}" bindinput="onRegisterPasswordInput" />
           <view class="password-toggle" bindtap="toggleRegisterPasswordVisibility">
             <text class="toggle-icon">{{showRegisterPassword ? '👁️' : '👁️‍🗨️'}}</text>
           </view>
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="{{showRegisterPasswordConfirm ? 'text' : 'password'}}" placeholder="请确认密码" value="{{registerPasswordConfirm}}" bindinput="onRegisterPasswordConfirmInput" />
+          <!-- 隐藏确认密码输入框 -->
+          <input wx:if="{{!showRegisterPasswordConfirm}}" class="input" type="password" placeholder="请确认密码" value="{{registerPasswordConfirm}}" bindinput="onRegisterPasswordConfirmInput" />
+          <!-- 显示确认密码输入框 -->
+          <input wx:else class="input" type="text" placeholder="请确认密码" value="{{registerPasswordConfirm}}" bindinput="onRegisterPasswordConfirmInput" />
           <view class="password-toggle" bindtap="toggleRegisterPasswordConfirmVisibility">
             <text class="toggle-icon">{{showRegisterPasswordConfirm ? '👁️' : '👁️‍🗨️'}}</text>
           </view>
