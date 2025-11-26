@@ -17,16 +17,17 @@ Page({
   loadFriends() {
     const userId = app.getUserId()
     app.call({
-      path: '/api/friends?userId=${userId}',
+      path: '/api/friends',
+      data: { userId: ${userId} },
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            friends: res.data.data || []
+            friends: res.data || []
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         const friends = wx.getStorageSync('friends') || []
         this.setData({ friends })
       }

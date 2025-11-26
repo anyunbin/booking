@@ -18,13 +18,13 @@ Page({
       path: '/api/time-slots',
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            timeSlots: res.data.data || []
+            timeSlots: res.data || []
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         // 如果服务器未启动，使用本地存储
         const slots = wx.getStorageSync('timeSlots') || []
         this.setData({ timeSlots: slots })
@@ -87,7 +87,7 @@ Page({
           icon: 'success'
         })
       },
-      }).catch((err) => {
+      }).catch(() => {
         // 保存到本地存储
         wx.setStorageSync('timeSlots', updatedSlots)
         wx.showToast({
@@ -121,7 +121,7 @@ Page({
                 icon: 'success'
               })
             },
-            }).catch((err) => {
+            }).catch(() => {
               // 更新本地存储
               wx.setStorageSync('timeSlots', updatedSlots)
               wx.showToast({

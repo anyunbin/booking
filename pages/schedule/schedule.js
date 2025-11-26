@@ -78,7 +78,7 @@ Page({
     wx.showModal({
       title: '语音设置',
       content: '点击确定开始录音，说出您的日程安排',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           recorderManager.start({
             duration: 10000,
@@ -374,7 +374,7 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这个日程吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           app.call({
             path: `/api/schedules/${id}`,
@@ -437,7 +437,7 @@ Page({
     wx.showModal({
       title: '确认同意',
       content: '确定要同意这个预约请求吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           app.call({
             path: `/api/requests/${id}/approve`,
@@ -475,7 +475,7 @@ Page({
     wx.showModal({
       title: '确认驳回',
       content: '确定要驳回这个预约请求吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           app.call({
             path: `/api/requests/${id}/reject`,

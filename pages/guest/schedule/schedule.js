@@ -27,13 +27,13 @@ Page({
       path: '/api/owners/${ownerId}',
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            ownerName: res.data.data.name || `主人${ownerId}`
+            ownerName: res.data.name || `主人${ownerId}`
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         this.setData({
           ownerName: `主人${ownerId}`
         })
@@ -45,16 +45,17 @@ Page({
     const { ownerId } = this.data
     
     app.call({
-      path: '/api/schedules?ownerId=${ownerId}',
+      path: '/api/schedules',
+      data: { ownerId: ${ownerId} },
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            schedules: this.groupSchedulesByDate(res.data.data || [])
+            schedules: this.groupSchedulesByDate(res.data || [])
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         // 从本地存储加载（实际应该从服务器获取）
         const allSchedules = wx.getStorageSync('schedules') || []
         const filtered = allSchedules.filter(s => s.status === 'available' || s.status === 'booked')

@@ -18,16 +18,17 @@ Page({
   loadMyFriends() {
     const userId = app.getUserId()
     app.call({
-      path: '/api/friends?userId=${userId}',
+      path: '/api/friends',
+      data: { userId: ${userId} },
       method: 'GET',
       }).then((res) => {
-        if (res.data && res.data.success) {
-          const friends = res.data.data || []
+        if (res.data && res.success) {
+          const friends = res.data || []
           const friendIds = friends.map(f => f.id)
           this.setData({ myFriends: friendIds })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         // 失败不影响搜索功能
       }
     })
@@ -79,8 +80,8 @@ Page({
       }).then((res) => {
         this.setData({ isSearching: false })
         
-        if (res.data && res.data.success) {
-          const results = res.data.data || []
+        if (res.data && res.success) {
+          const results = res.data || []
           const { myFriends } = this.data
           
           // 标记是否已是好友，并处理头像文字
@@ -102,7 +103,7 @@ Page({
           })
         }
       },
-      fail: (err) => {
+      }).catch((err) => {
         this.setData({ isSearching: false, searchResults: [] })
         console.error('搜索用户失败:', err)
         wx.showToast({
@@ -145,7 +146,7 @@ Page({
       }).then((res) => {
         wx.hideLoading()
         
-        if (res.data && res.data.success) {
+        if (res.data && res.success) {
           wx.showToast({
             title: '添加成功',
             icon: 'success'
@@ -174,7 +175,7 @@ Page({
           })
         }
       },
-      fail: (err) => {
+      }).catch((err) => {
         wx.hideLoading()
         console.error('添加好友失败:', err)
         wx.showToast({

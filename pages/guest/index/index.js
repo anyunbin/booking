@@ -19,13 +19,13 @@ Page({
       path: '/api/owners',
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            owners: res.data.data || []
+            owners: res.data || []
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         const owners = wx.getStorageSync('guestOwners') || []
         this.setData({ owners })
       }

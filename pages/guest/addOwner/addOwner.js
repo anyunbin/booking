@@ -45,18 +45,18 @@ Page({
       method: 'GET',
       }).then((res) => {
         wx.hideLoading()
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            searchResult: res.data.data
+            searchResult: res.data
           })
         } else {
           wx.showToast({
-            title: res.data.message || '未找到该主人',
+            title: res.message || '未找到该主人',
             icon: 'none'
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         wx.hideLoading()
         // 模拟搜索结果
         this.setData({
@@ -76,7 +76,7 @@ Page({
         this.setData({ ownerId })
         this.searchOwner()
       },
-      }).catch((err) => {
+      }).catch(() => {
         wx.showToast({
           title: '扫描失败',
           icon: 'none'
@@ -97,7 +97,7 @@ Page({
       method: 'POST',
       data: { ownerId: searchResult.id },
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           wx.showToast({
             title: '添加成功',
             icon: 'success'
@@ -107,12 +107,12 @@ Page({
           }, 1500)
         } else {
           wx.showToast({
-            title: res.data.message || '添加失败',
+            title: res.message || '添加失败',
             icon: 'none'
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         // 保存到本地存储
         const owners = wx.getStorageSync('guestOwners') || []
         if (!owners.find(o => o.id === searchResult.id)) {

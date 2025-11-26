@@ -25,16 +25,17 @@ Page({
     const { currentTab } = this.data
     
     app.call({
-      path: '/api/requests?status=${currentTab}',
+      path: '/api/requests',
+      data: { status: ${currentTab} },
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            requests: res.data.data || []
+            requests: res.data || []
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         const allRequests = wx.getStorageSync('requests') || []
         const filtered = allRequests.filter(r => r.status === currentTab)
         this.setData({ requests: filtered })
@@ -60,7 +61,7 @@ Page({
               })
               this.loadRequests()
             },
-            }).catch((err) => {
+            }).catch(() => {
               const allRequests = wx.getStorageSync('requests') || []
               const index = allRequests.findIndex(r => r.id === id)
               if (index !== -1) {
@@ -97,7 +98,7 @@ Page({
               })
               this.loadRequests()
             },
-            }).catch((err) => {
+            }).catch(() => {
               const allRequests = wx.getStorageSync('requests') || []
               const index = allRequests.findIndex(r => r.id === id)
               if (index !== -1) {

@@ -52,15 +52,15 @@ Page({
       path: '/api/users/${userId}',
       method: 'GET',
       }).then((res) => {
-        if (res.data && res.data.success) {
-          const userInfo = res.data.data
+        if (res.data && res.success) {
+          const userInfo = res.data
           this.setData({ userInfo })
           // 更新全局数据
           app.globalData.userInfo = userInfo
           wx.setStorageSync('userInfo', userInfo)
         }
       },
-      fail: (err) => {
+      }).catch((err) => {
         console.error('获取用户信息失败:', err)
       }
     })
@@ -124,14 +124,14 @@ Page({
         email: editEmail
       },
       }).then((res) => {
-        if (res.data && res.data.success) {
+        if (res.data && res.success) {
           wx.showToast({
             title: '修改成功',
             icon: 'success'
           })
           
           // 更新本地用户信息
-          const userInfo = { ...this.data.userInfo, ...res.data.data }
+          const userInfo = { ...this.data.userInfo, ...res.data }
           this.setData({ userInfo })
           app.globalData.userInfo = userInfo
           wx.setStorageSync('userInfo', userInfo)
@@ -145,7 +145,7 @@ Page({
         }
         this.setData({ isSubmitting: false })
       },
-      fail: (err) => {
+      }).catch((err) => {
         console.error('修改用户信息失败:', err)
         wx.showToast({
           title: '网络错误，请重试',
@@ -235,7 +235,7 @@ Page({
         newPassword: newPassword
       },
       }).then((res) => {
-        if (res.data && res.data.success) {
+        if (res.data && res.success) {
           wx.showToast({
             title: '密码修改成功',
             icon: 'success'
@@ -249,7 +249,7 @@ Page({
         }
         this.setData({ isSubmitting: false })
       },
-      fail: (err) => {
+      }).catch((err) => {
         console.error('修改密码失败:', err)
         wx.showToast({
           title: '网络错误，请重试',

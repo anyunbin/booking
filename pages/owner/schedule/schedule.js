@@ -23,13 +23,13 @@ Page({
       path: '/api/schedules',
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            schedules: this.groupSchedulesByDate(res.data.data || [])
+            schedules: this.groupSchedulesByDate(res.data || [])
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         const schedules = wx.getStorageSync('schedules') || []
         this.setData({
           schedules: this.groupSchedulesByDate(schedules)
@@ -190,7 +190,7 @@ Page({
         this.setData({ showManualModal: false })
         this.loadSchedules()
       },
-      }).catch((err) => {
+      }).catch(() => {
         const allSchedules = wx.getStorageSync('schedules') || []
         allSchedules.push(newSchedule)
         wx.setStorageSync('schedules', allSchedules)
@@ -222,7 +222,7 @@ Page({
               })
               this.loadSchedules()
             },
-            }).catch((err) => {
+            }).catch(() => {
               const allSchedules = wx.getStorageSync('schedules') || []
               const filtered = allSchedules.filter(s => s.id !== id)
               wx.setStorageSync('schedules', filtered)

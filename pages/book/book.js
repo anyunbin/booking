@@ -25,13 +25,13 @@ Page({
       path: '/api/schedules/${scheduleId}',
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            schedule: res.data.data
+            schedule: res.data
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         // 从本地存储加载
         const allSchedules = wx.getStorageSync('schedules') || []
         const schedule = allSchedules.find(s => s.id == scheduleId)
@@ -78,7 +78,7 @@ Page({
       data: bookingData,
       }).then((res) => {
         wx.hideLoading()
-        if (res.data.success) {
+        if (res.success) {
           wx.showToast({
             title: '预约请求已提交',
             icon: 'success'
@@ -88,12 +88,12 @@ Page({
           }, 1500)
         } else {
           wx.showToast({
-            title: res.data.message || '提交失败',
+            title: res.message || '提交失败',
             icon: 'none'
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         wx.hideLoading()
         // 保存到本地存储
         const requests = wx.getStorageSync('requests') || []

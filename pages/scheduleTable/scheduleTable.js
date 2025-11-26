@@ -965,7 +965,7 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这个日程吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           app.call({
             path: `/api/schedules/${selectedScheduleId}`,

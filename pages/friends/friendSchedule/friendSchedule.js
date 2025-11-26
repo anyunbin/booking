@@ -49,13 +49,13 @@ Page({
       path: '/api/users/${friendId}',
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           this.setData({
-            friendName: res.data.data.nickname || res.data.data.name || `用户${friendId}`
+            friendName: res.data.nickname || res.data.name || `用户${friendId}`
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         this.setData({
           friendName: `用户${friendId}`
         })
@@ -224,11 +224,12 @@ Page({
 
     // 加载好友的公开日程
     app.call({
-      path: '/api/schedules?friendId=${friendId}',
+      path: '/api/schedules',
+      data: { friendId: ${friendId} },
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
-          res.data.data.forEach(schedule => {
+        if (res.success) {
+          res.data.forEach(schedule => {
             const startTime = schedule.start_time || schedule.startTime
             const endTime = schedule.end_time || schedule.endTime
             const startMinutes = this.timeToMinutes(startTime)
@@ -281,7 +282,7 @@ Page({
         this.setData({ tableData })
         this.loadBookingData()
       },
-      }).catch((err) => {
+      }).catch(() => {
         this.setData({ tableData })
         this.loadBookingData()
       }
@@ -295,14 +296,15 @@ Page({
 
     // 加载我向这个好友发起的预约请求
     app.call({
-      path: '/api/requests?guestId=${userId}&ownerId=${friendId}',
+      path: '/api/requests',
+      data: { guestId: ${userId}, ownerId: ${friendId} },
       method: 'GET',
       }).then((res) => {
-        if (res.data.success) {
+        if (res.success) {
           const newTableData = { ...tableData }
           
           // 待审核的请求
-          res.data.data.filter(r => r.status === 'pending').forEach(request => {
+          res.data.filter(r => r.status === 'pending').forEach(request => {
             const startTime = request.start_time || request.startTime
             const endTime = request.end_time || request.endTime
             const startMinutes = this.timeToMinutes(startTime)
@@ -327,7 +329,7 @@ Page({
           })
 
           // 已预约的请求（已同意）
-          res.data.data.filter(r => r.status === 'approved').forEach(request => {
+          res.data.filter(r => r.status === 'approved').forEach(request => {
             const startTime = request.start_time || request.startTime
             const endTime = request.end_time || request.endTime
             const startMinutes = this.timeToMinutes(startTime)
@@ -355,7 +357,7 @@ Page({
           this.updateDateScheduleCounts()
         }
       },
-      }).catch((err) => {}
+      }).catch(() => {}
     })
   },
 
@@ -514,7 +516,7 @@ Page({
       },
       }).then((res) => {
         wx.hideLoading()
-        if (res.data.success) {
+        if (res.success) {
           wx.showToast({
             title: '预约成功',
             icon: 'success'
@@ -523,12 +525,12 @@ Page({
           this.loadTableData()
         } else {
           wx.showToast({
-            title: res.data.message || '预约失败',
+            title: res.message || '预约失败',
             icon: 'none'
           })
         }
       },
-      }).catch((err) => {
+      }).catch(() => {
         wx.hideLoading()
         wx.showToast({
           title: '网络错误',
