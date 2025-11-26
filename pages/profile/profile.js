@@ -48,10 +48,10 @@ Page({
       return
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/users/${userId}`,
+    app.call({
+      path: '/api/users/${userId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data && res.data.success) {
           const userInfo = res.data.data
           this.setData({ userInfo })
@@ -114,8 +114,8 @@ Page({
 
     this.setData({ isSubmitting: true })
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/users/${userId}`,
+    app.call({
+      path: '/api/users/${userId}',
       method: 'PATCH',
       data: {
         nickname: editNickname,
@@ -123,7 +123,7 @@ Page({
         phone: editPhone,
         email: editEmail
       },
-      success: (res) => {
+      }).then((res) => {
         if (res.data && res.data.success) {
           wx.showToast({
             title: '修改成功',
@@ -226,15 +226,15 @@ Page({
 
     const userId = app.getUserId()
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/auth/change-password`,
+    app.call({
+      path: '/api/auth/change-password',
       method: 'POST',
       data: {
         userId: userId,
         oldPassword: oldPassword,
         newPassword: newPassword
       },
-      success: (res) => {
+      }).then((res) => {
         if (res.data && res.data.success) {
           wx.showToast({
             title: '密码修改成功',
@@ -265,7 +265,7 @@ Page({
     wx.showModal({
       title: '确认退出',
       content: '确定要退出登录吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           app.logout()
         }

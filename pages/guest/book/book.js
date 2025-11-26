@@ -21,17 +21,17 @@ Page({
   loadSchedule() {
     const { scheduleId } = this.data
     
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules/${scheduleId}`,
+    app.call({
+      path: '/api/schedules/${scheduleId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           this.setData({
             schedule: res.data.data
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         // 从本地存储加载
         const allSchedules = wx.getStorageSync('schedules') || []
         const schedule = allSchedules.find(s => s.id == scheduleId)
@@ -72,11 +72,11 @@ Page({
       note: note.trim()
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests`,
+    app.call({
+      path: '/api/requests',
       method: 'POST',
       data: bookingData,
-      success: (res) => {
+      }).then((res) => {
         wx.hideLoading()
         if (res.data.success) {
           wx.showToast({
@@ -93,7 +93,7 @@ Page({
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         wx.hideLoading()
         // 保存到本地存储
         const requests = wx.getStorageSync('requests') || []

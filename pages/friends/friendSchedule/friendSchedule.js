@@ -45,17 +45,17 @@ Page({
 
   loadFriendInfo() {
     const { friendId } = this.data
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/users/${friendId}`,
+    app.call({
+      path: '/api/users/${friendId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           this.setData({
             friendName: res.data.data.nickname || res.data.data.name || `用户${friendId}`
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         this.setData({
           friendName: `用户${friendId}`
         })
@@ -223,10 +223,10 @@ Page({
     console.log('Initialized table cells:', Object.keys(tableData).length)
 
     // 加载好友的公开日程
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules?friendId=${friendId}`,
+    app.call({
+      path: '/api/schedules?friendId=${friendId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           res.data.data.forEach(schedule => {
             const startTime = schedule.start_time || schedule.startTime
@@ -281,7 +281,7 @@ Page({
         this.setData({ tableData })
         this.loadBookingData()
       },
-      fail: () => {
+      }).catch((err) => {
         this.setData({ tableData })
         this.loadBookingData()
       }
@@ -294,10 +294,10 @@ Page({
     const { friendId, tableData, minTimeUnitMinutes } = this.data
 
     // 加载我向这个好友发起的预约请求
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?guestId=${userId}&ownerId=${friendId}`,
+    app.call({
+      path: '/api/requests?guestId=${userId}&ownerId=${friendId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           const newTableData = { ...tableData }
           
@@ -355,7 +355,7 @@ Page({
           this.updateDateScheduleCounts()
         }
       },
-      fail: () => {}
+      }).catch((err) => {}
     })
   },
 
@@ -499,8 +499,8 @@ Page({
       title: '提交中...'
     })
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests`,
+    app.call({
+      path: '/api/requests',
       method: 'POST',
       data: {
         scheduleId: selectedScheduleId,
@@ -512,7 +512,7 @@ Page({
         guestId: userId,
         guestName: app.getUserInfo()?.nickname || app.getUserInfo()?.name || '访客'
       },
-      success: (res) => {
+      }).then((res) => {
         wx.hideLoading()
         if (res.data.success) {
           wx.showToast({
@@ -528,7 +528,7 @@ Page({
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         wx.hideLoading()
         wx.showToast({
           title: '网络错误',

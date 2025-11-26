@@ -24,17 +24,17 @@ Page({
   loadRequests() {
     const { currentTab } = this.data
     
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?status=${currentTab}`,
+    app.call({
+      path: '/api/requests?status=${currentTab}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           this.setData({
             requests: res.data.data || []
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         const allRequests = wx.getStorageSync('requests') || []
         const filtered = allRequests.filter(r => r.status === currentTab)
         this.setData({ requests: filtered })
@@ -48,10 +48,10 @@ Page({
     wx.showModal({
       title: '确认同意',
       content: '确定要同意这个预约请求吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests/${id}/approve`,
+          app.call({
+            path: '/api/requests/${id}/approve',
             method: 'POST',
             success: () => {
               wx.showToast({
@@ -60,7 +60,7 @@ Page({
               })
               this.loadRequests()
             },
-            fail: () => {
+            }).catch((err) => {
               const allRequests = wx.getStorageSync('requests') || []
               const index = allRequests.findIndex(r => r.id === id)
               if (index !== -1) {
@@ -85,10 +85,10 @@ Page({
     wx.showModal({
       title: '确认驳回',
       content: '确定要驳回这个预约请求吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests/${id}/reject`,
+          app.call({
+            path: '/api/requests/${id}/reject',
             method: 'POST',
             success: () => {
               wx.showToast({
@@ -97,7 +97,7 @@ Page({
               })
               this.loadRequests()
             },
-            fail: () => {
+            }).catch((err) => {
               const allRequests = wx.getStorageSync('requests') || []
               const index = allRequests.findIndex(r => r.id === id)
               if (index !== -1) {

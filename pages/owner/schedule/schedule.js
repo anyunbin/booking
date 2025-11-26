@@ -19,17 +19,17 @@ Page({
   },
 
   loadSchedules() {
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules`,
+    app.call({
+      path: '/api/schedules',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           this.setData({
             schedules: this.groupSchedulesByDate(res.data.data || [])
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         const schedules = wx.getStorageSync('schedules') || []
         this.setData({
           schedules: this.groupSchedulesByDate(schedules)
@@ -56,7 +56,7 @@ Page({
     wx.showModal({
       title: '语音设置',
       content: '点击确定开始录音，说出您的日程安排',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           recorderManager.start({
             duration: 10000,
@@ -178,8 +178,8 @@ Page({
       status: 'available'
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules`,
+    app.call({
+      path: '/api/schedules',
       method: 'POST',
       data: newSchedule,
       success: () => {
@@ -190,7 +190,7 @@ Page({
         this.setData({ showManualModal: false })
         this.loadSchedules()
       },
-      fail: () => {
+      }).catch((err) => {
         const allSchedules = wx.getStorageSync('schedules') || []
         allSchedules.push(newSchedule)
         wx.setStorageSync('schedules', allSchedules)
@@ -210,10 +210,10 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: '确定要删除这个日程吗？',
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/schedules/${id}`,
+          app.call({
+            path: '/api/schedules/${id}',
             method: 'DELETE',
             success: () => {
               wx.showToast({
@@ -222,7 +222,7 @@ Page({
               })
               this.loadSchedules()
             },
-            fail: () => {
+            }).catch((err) => {
               const allSchedules = wx.getStorageSync('schedules') || []
               const filtered = allSchedules.filter(s => s.id !== id)
               wx.setStorageSync('schedules', filtered)

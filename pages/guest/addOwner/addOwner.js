@@ -40,10 +40,10 @@ Page({
       title: '搜索中...'
     })
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/owners/${ownerId}`,
+    app.call({
+      path: '/api/owners/${ownerId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         wx.hideLoading()
         if (res.data.success) {
           this.setData({
@@ -56,7 +56,7 @@ Page({
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         wx.hideLoading()
         // 模拟搜索结果
         this.setData({
@@ -71,12 +71,12 @@ Page({
 
   scanQRCode() {
     wx.scanCode({
-      success: (res) => {
+      }).then((res) => {
         const ownerId = res.result
         this.setData({ ownerId })
         this.searchOwner()
       },
-      fail: () => {
+      }).catch((err) => {
         wx.showToast({
           title: '扫描失败',
           icon: 'none'
@@ -92,11 +92,11 @@ Page({
       return
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/owners/add`,
+    app.call({
+      path: '/api/owners/add',
       method: 'POST',
       data: { ownerId: searchResult.id },
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           wx.showToast({
             title: '添加成功',
@@ -112,7 +112,7 @@ Page({
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         // 保存到本地存储
         const owners = wx.getStorageSync('guestOwners') || []
         if (!owners.find(o => o.id === searchResult.id)) {

@@ -17,17 +17,17 @@ Page({
   // 加载我的好友列表
   loadMyFriends() {
     const userId = app.getUserId()
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/friends?userId=${userId}`,
+    app.call({
+      path: '/api/friends?userId=${userId}',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data && res.data.success) {
           const friends = res.data.data || []
           const friendIds = friends.map(f => f.id)
           this.setData({ myFriends: friendIds })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         // 失败不影响搜索功能
       }
     })
@@ -70,13 +70,13 @@ Page({
 
     this.setData({ isSearching: true })
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/users/search`,
+    app.call({
+      path: '/api/users/search',
       method: 'GET',
       data: {
         keyword: searchKeyword.trim()
       },
-      success: (res) => {
+      }).then((res) => {
         this.setData({ isSearching: false })
         
         if (res.data && res.data.success) {
@@ -135,14 +135,14 @@ Page({
       title: '添加中...'
     })
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/friends/add`,
+    app.call({
+      path: '/api/friends/add',
       method: 'POST',
       data: { 
         friendId: friend.id, 
         userId: userId 
       },
-      success: (res) => {
+      }).then((res) => {
         wx.hideLoading()
         
         if (res.data && res.data.success) {

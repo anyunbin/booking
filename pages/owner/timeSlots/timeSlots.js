@@ -14,17 +14,17 @@ Page({
 
   loadTimeSlots() {
     // 从服务器加载时间单元
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/time-slots`,
+    app.call({
+      path: '/api/time-slots',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           this.setData({
             timeSlots: res.data.data || []
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         // 如果服务器未启动，使用本地存储
         const slots = wx.getStorageSync('timeSlots') || []
         this.setData({ timeSlots: slots })
@@ -77,8 +77,8 @@ Page({
     })
 
     // 保存到服务器
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/time-slots`,
+    app.call({
+      path: '/api/time-slots',
       method: 'POST',
       data: newSlot,
       success: () => {
@@ -87,7 +87,7 @@ Page({
           icon: 'success'
         })
       },
-      fail: () => {
+      }).catch((err) => {
         // 保存到本地存储
         wx.setStorageSync('timeSlots', updatedSlots)
         wx.showToast({
@@ -106,14 +106,14 @@ Page({
     wx.showModal({
       title: '确认删除',
       content: `确定要删除时间段 ${slot.startTime}-${slot.endTime} 吗？`,
-      success: (res) => {
+      }).then((res) => {
         if (res.confirm) {
           const updatedSlots = timeSlots.filter((_, i) => i !== index)
           this.setData({ timeSlots: updatedSlots })
 
           // 从服务器删除
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/time-slots/${slot.id}`,
+          app.call({
+            path: '/api/time-slots/${slot.id}',
             method: 'DELETE',
             success: () => {
               wx.showToast({
@@ -121,7 +121,7 @@ Page({
                 icon: 'success'
               })
             },
-            fail: () => {
+            }).catch((err) => {
               // 更新本地存储
               wx.setStorageSync('timeSlots', updatedSlots)
               wx.showToast({

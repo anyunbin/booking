@@ -15,17 +15,17 @@ Page({
   },
 
   loadOwners() {
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/owners`,
+    app.call({
+      path: '/api/owners',
       method: 'GET',
-      success: (res) => {
+      }).then((res) => {
         if (res.data.success) {
           this.setData({
             owners: res.data.data || []
           })
         }
       },
-      fail: () => {
+      }).catch((err) => {
         const owners = wx.getStorageSync('guestOwners') || []
         this.setData({ owners })
       }
