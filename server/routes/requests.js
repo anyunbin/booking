@@ -181,5 +181,39 @@ router.post('/:id/reject', async (req, res) => {
   }
 })
 
+// 删除预约请求（取消预约）
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    // 获取请求信息
+    const requests = await db.query('SELECT * FROM requests WHERE id = ?', [id])
+    if (requests.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: '请求不存在'
+      })
+    }
+
+    const request = requests[0]
+
+    // 删除请求
+    await db.run('DELETE FROM requests WHERE id = ?', [id])
+
+    // 更新日程状态为可用
+    await db.run('UPDATE schedules SET status = ? WHERE id = ?', ['available', request.schedule_id])
+
+    res.json({
+      success: true,
+      message: '已取消预约'
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    })
+  }
+})
+
 module.exports = router
 

@@ -2,6 +2,39 @@
 const express = require('express')
 const router = express.Router()
 const db = require('../db')
+const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
+
+// 配置上传目录
+const uploadDir = path.join(__dirname, '../uploads')
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true })
+}
+
+// 配置 multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('只支持 JPG、PNG、GIF、WebP 格式的图片'))
+    }
+  }
+})
 
 // 搜索用户（按昵称或用户名）
 router.get('/search', async (req, res) => {
@@ -79,6 +112,58 @@ router.get('/:id', async (req, res) => {
         phone: user.phone,
         email: user.email,
         created_at: user.created_at,
+        last_login_at: user.last_login_at
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    })
+  }
+})
+
+// 上传头像
+router.post('/:id/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    const { id } = req.params
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: '没有上传文件'
+      })
+    }
+
+    // 生成头像 URL
+    const avatarUrl = `/uploads/${req.file.filename}`
+
+    // 更新用户头像
+    await db.run('UPDATE users SET avatar_url = ?, updated_at = datetime("now") WHERE id = ?', [avatarUrl, id])
+
+    // 返回更新后的用户信息
+    const users = await db.query('SELECT * FROM users WHERE id = ?', [id])
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在'
+      })
+    }
+
+    const user = users[0]
+    res.json({
+      success: true,
+      message: '头像上传成功',
+      data: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        nickname: user.nickname || user.name,
+        avatar_url: user.avatar_url,
+        phone: user.phone,
+        email: user.email,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
         last_login_at: user.last_login_at
       }
     })

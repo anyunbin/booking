@@ -53,9 +53,10 @@ app.options('*', cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-// 静态文件服务（管理后台）
+// 静态文件服务（管理后台和上传文件）
 const path = require('path')
 app.use('/admin', express.static(path.join(__dirname, 'admin')))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 // 路由
 app.use('/api', require('./routes'))

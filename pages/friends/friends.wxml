@@ -5,23 +5,85 @@
     <view class="subtitle">查看好友的公开日程</view>
   </view>
 
-  <button class="btn-add-friend" bindtap="goToAddFriend">+ 添加好友</button>
-
-  <view class="friends-list">
-    <view class="friend-item" wx:for="{{friends}}" wx:key="id" bindtap="viewFriendSchedule" data-id="{{item.id}}">
-      <view class="friend-avatar">{{item.name.charAt(0)}}</view>
-      <view class="friend-info">
-        <view class="friend-name">{{item.name}}</view>
-        <view class="friend-id">ID: {{item.id}}</view>
-      </view>
-      <view class="friend-arrow">></view>
+  <!-- 顶部统计提醒 -->
+  <view class="stats-reminder">
+    <view class="reminder-item approved">
+      <view class="reminder-label">已预约成功</view>
+      <view class="reminder-count">{{bookingStats.approvedCount}}</view>
     </view>
-    
-    <view class="empty" wx:if="{{friends.length === 0}}">
-      <view class="empty-icon">👥</view>
-      <view class="empty-text">还没有好友</view>
-      <view class="empty-desc">添加好友后可以查看他们的公开日程</view>
+    <view class="reminder-item pending">
+      <view class="reminder-label">待审批中</view>
+      <view class="reminder-count">{{bookingStats.pendingCount}}</view>
+    </view>
+    <view class="reminder-item total">
+      <view class="reminder-label">总计</view>
+      <view class="reminder-count">{{bookingStats.totalCount}}</view>
     </view>
   </view>
+
+  <!-- 顶部预约详情信息 -->
+  <view class="booking-details">
+    <!-- 已预约日程 -->
+    <view class="booking-section" wx:if="{{bookingDetails.approvedBookings.length > 0}}">
+      <view class="section-title">已预约</view>
+      <view class="booking-item" wx:for="{{bookingDetails.approvedBookings}}" wx:key="id">
+        <view class="booking-info">
+          <view class="booking-date">{{item.date}}</view>
+          <view class="booking-time">{{item.start_time}} - {{item.end_time}}</view>
+        </view>
+        <view class="booking-owner-badge">{{item.owner_name || '好友'}}</view>
+      </view>
+    </view>
+    
+    <!-- 审批中日程 -->
+    <view class="booking-section" wx:if="{{bookingDetails.pendingBookings.length > 0}}">
+      <view class="section-title pending">待审核</view>
+      <view class="booking-item" wx:for="{{bookingDetails.pendingBookings}}" wx:key="id">
+        <view class="booking-info">
+          <view class="booking-date">{{item.date}}</view>
+          <view class="booking-time">{{item.start_time}} - {{item.end_time}}</view>
+        </view>
+        <view class="booking-owner-badge pending">{{item.owner_name || '好友'}}</view>
+      </view>
+    </view>
+
+    <!-- 如果没有预约信息 -->
+    <view class="no-booking" wx:if="{{bookingDetails.approvedBookings.length === 0 && bookingDetails.pendingBookings.length === 0}}">
+      <view class="no-booking-text">暂无预约日程</view>
+    </view>
+  </view>
+
+  <!-- 好友列表 -->
+  <view class="friends-section">
+    <view class="section-header">好友列表</view>
+    <view class="friends-list">
+       <view class="friend-item" wx:for="{{friends}}" wx:key="id" bindtap="viewFriendSchedule" data-id="{{item.id}}">
+         <image class="friend-avatar" src="{{item.avatar_url || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzY2N2VlYSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj4nICsgaXRlbS5uYW1lLmNoYXJBdCgwKSArICc8L3RleHQ+PC9zdmc+'}}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzY2N2VlYSIvPjwvc3ZnPg=='"></image>
+         <view class="friend-info">
+           <view class="friend-name">{{item.name || item.nickname}}</view>
+         </view>
+        <view class="friend-stats">
+          <view class="stat-badge available">
+            <view class="stat-label">可预约</view>
+            <view class="stat-count">{{item.availableCount || 0}}</view>
+          </view>
+          <view class="stat-badge booked">
+            <view class="stat-label">我的预约</view>
+            <view class="stat-count">{{item.myBookingCount || 0}}</view>
+          </view>
+        </view>
+        <view class="friend-arrow">></view>
+      </view>
+
+      <view class="empty" wx:if="{{friends.length === 0}}">
+        <view class="empty-icon">👥</view>
+        <view class="empty-text">还没有好友</view>
+        <view class="empty-desc">添加好友后可以查看他们的公开日程</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部添加好友按钮 -->
+  <button class="btn-add-friend" bindtap="goToAddFriend">+ 添加好友</button>
 </view>
 

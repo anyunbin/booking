@@ -260,7 +260,8 @@
       </view>
       <view class="modal-buttons">
         <button class="btn-cancel" bindtap="closeCellModal">关闭</button>
-        <button class="btn-delete" bindtap="deleteSchedule" wx:if="{{hasSchedule}}">删除日程</button>
+        <button class="btn-cancel-booking" bindtap="cancelBooking" wx:if="{{selectedRequestId}}">取消预约</button>
+        <button class="btn-delete" bindtap="deleteSchedule" wx:if="{{hasSchedule && !selectedRequestId}}">删除日程</button>
       </view>
     </view>
   </view>

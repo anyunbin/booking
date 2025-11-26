@@ -21,7 +21,7 @@
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="password" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
+          <input class="input" type="password" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" password="{{true}}" />
         </view>
         <button class="submit-button" bindtap="handleLogin" loading="{{isSubmitting}}">登录</button>
       </view>

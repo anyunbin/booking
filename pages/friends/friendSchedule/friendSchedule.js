@@ -491,6 +491,20 @@ Page({
       return
     }
 
+    // 如果是我的预约或申请，显示取消选项
+    if ((cell.status === 'booked' || cell.status === 'pending') && cell.isMyRequest) {
+      wx.showActionSheet({
+        itemList: ['取消预约'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            this.cancelBooking(cell.requestId)
+          }
+        }
+      })
+      return
+    }
+
+    // 如果是他人的预约或待审核，不能操作
     if (cell.status === 'booked' || cell.status === 'pending') {
       wx.showToast({
         title: '该时间段不可预约',
@@ -520,6 +534,40 @@ Page({
         bookingNote: ''
       })
     }
+  },
+
+  // 取消预约
+  cancelBooking(requestId) {
+    wx.showLoading({
+      title: '取消中...'
+    })
+
+    wx.request({
+      url: `${app.globalData.apiBaseUrl}/requests/${requestId}`,
+      method: 'DELETE',
+      success: (res) => {
+        wx.hideLoading()
+        if (res.data && res.data.success) {
+          wx.showToast({
+            title: '已取消预约',
+            icon: 'success'
+          })
+          this.loadTableData()
+        } else {
+          wx.showToast({
+            title: res.data?.message || '取消失败',
+            icon: 'none'
+          })
+        }
+      },
+      fail: () => {
+        wx.hideLoading()
+        wx.showToast({
+          title: '网络错误',
+          icon: 'none'
+        })
+      }
+    })
   },
 
   // 关闭预约弹窗

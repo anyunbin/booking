@@ -1,14 +1,17 @@
 <!--pages/index/index.wxml-->
 <view class="container">
+  <!-- 顶部装饰 -->
+  <view class="top-decoration"></view>
+
   <view class="header-card">
     <view class="header-content">
-      <view class="title">我的预约</view>
+      <view class="title">📅 我的预约</view>
       <view class="subtitle">管理日程，与好友分享</view>
     </view>
   </view>
 
   <view class="menu-list">
-    <view class="menu-item" bindtap="goToScheduleTable">
+    <view class="menu-item schedule-item" bindtap="goToScheduleTable">
       <view class="menu-icon-wrapper schedule-icon">
         <view class="icon-bar bar-1"></view>
         <view class="icon-bar bar-2"></view>
@@ -21,7 +24,7 @@
       <view class="menu-arrow">›</view>
     </view>
 
-    <view class="menu-item" bindtap="goToFriends">
+    <view class="menu-item friends-item" bindtap="goToFriends">
       <view class="menu-icon-wrapper friends-icon">
         <view class="icon-person person-1"></view>
         <view class="icon-person person-2"></view>
@@ -33,9 +36,9 @@
       <view class="menu-arrow">›</view>
     </view>
 
-    <view class="menu-item" bindtap="goToProfile">
+    <view class="menu-item profile-item" bindtap="goToProfile">
       <view class="menu-icon-wrapper profile-icon">
-        <text class="icon-text">👤</text>
+        <view class="icon-avatar"></view>
       </view>
       <view class="menu-content">
         <view class="menu-title">个人中心</view>
@@ -44,4 +47,7 @@
       <view class="menu-arrow">›</view>
     </view>
   </view>
+
+  <!-- 底部装饰 -->
+  <view class="bottom-decoration"></view>
 </view>
