@@ -155,7 +155,11 @@ App({
           ...header
         },
         success: (res) => {
-          console.log(`公网调用成功 [${method} ${path}]`, res)
+          console.log(`公网调用响应 [${method} ${path}] 状态码: ${res.statusCode}`, res.data)
+
+          // 注意：wx.request 的 success 回调在网络请求成功时触发，
+          // 无论 HTTP 状态码是什么（包括 401、500 等）
+          // 所以这里直接返回响应数据，让调用者处理业务逻辑
           resolve(res.data)
         },
         fail: (err) => {
