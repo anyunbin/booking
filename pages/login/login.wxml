@@ -21,7 +21,10 @@
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="password" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
+          <input class="input" type="{{showLoginPassword ? 'text' : 'password'}}" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
+          <view class="password-toggle" bindtap="toggleLoginPasswordVisibility">
+            <text class="toggle-icon">{{showLoginPassword ? '👁️' : '👁️‍🗨️'}}</text>
+          </view>
         </view>
         <button class="submit-button" bindtap="handleLogin" loading="{{isSubmitting}}">登录</button>
       </view>
@@ -34,11 +37,17 @@
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="password" placeholder="请输入密码（至少6个字符）" value="{{registerPassword}}" bindinput="onRegisterPasswordInput" />
+          <input class="input" type="{{showRegisterPassword ? 'text' : 'password'}}" placeholder="请输入密码（至少6个字符）" value="{{registerPassword}}" bindinput="onRegisterPasswordInput" />
+          <view class="password-toggle" bindtap="toggleRegisterPasswordVisibility">
+            <text class="toggle-icon">{{showRegisterPassword ? '👁️' : '👁️‍🗨️'}}</text>
+          </view>
         </view>
         <view class="input-wrapper">
           <text class="input-icon">🔒</text>
-          <input class="input" type="password" placeholder="请确认密码" value="{{registerPasswordConfirm}}" bindinput="onRegisterPasswordConfirmInput" />
+          <input class="input" type="{{showRegisterPasswordConfirm ? 'text' : 'password'}}" placeholder="请确认密码" value="{{registerPasswordConfirm}}" bindinput="onRegisterPasswordConfirmInput" />
+          <view class="password-toggle" bindtap="toggleRegisterPasswordConfirmVisibility">
+            <text class="toggle-icon">{{showRegisterPasswordConfirm ? '👁️' : '👁️‍🗨️'}}</text>
+          </view>
         </view>
         <view class="input-wrapper">
           <text class="input-icon">📝</text>

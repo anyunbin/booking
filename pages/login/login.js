@@ -8,11 +8,14 @@ Page({
     // 登录表单
     loginUsername: '',
     loginPassword: '',
+    showLoginPassword: false, // 登录密码是否显示
     // 注册表单
     registerUsername: '',
     registerPassword: '',
     registerPasswordConfirm: '',
-    registerNickname: ''
+    registerNickname: '',
+    showRegisterPassword: false, // 注册密码是否显示
+    showRegisterPasswordConfirm: false // 确认密码是否显示
   },
 
   onLoad() {
@@ -52,6 +55,11 @@ Page({
     this.setData({ loginPassword: e.detail.value })
   },
 
+  // 切换登录密码显示/隐藏
+  toggleLoginPasswordVisibility() {
+    this.setData({ showLoginPassword: !this.data.showLoginPassword })
+  },
+
   // 注册表单输入
   onRegisterUsernameInput(e) {
     this.setData({ registerUsername: e.detail.value })
@@ -67,6 +75,16 @@ Page({
 
   onRegisterNicknameInput(e) {
     this.setData({ registerNickname: e.detail.value })
+  },
+
+  // 切换注册密码显示/隐藏
+  toggleRegisterPasswordVisibility() {
+    this.setData({ showRegisterPassword: !this.data.showRegisterPassword })
+  },
+
+  // 切换确认密码显示/隐藏
+  toggleRegisterPasswordConfirmVisibility() {
+    this.setData({ showRegisterPasswordConfirm: !this.data.showRegisterPasswordConfirm })
   },
 
   // 处理登录
@@ -169,16 +187,16 @@ Page({
     this.setData({ isSubmitting: true })
 
     try {
-       console.log('开始注册请求...')
-       const result = await app.call({
-         path: '/api/auth/register',
-         method: 'POST',
-         data: {
-           username: registerUsername,
-           password: registerPassword,
-           nickname: registerNickname || registerUsername
-         }
-       })
+      console.log('开始注册请求...')
+      const result = await app.call({
+        path: '/api/auth/register',
+        method: 'POST',
+        data: {
+          username: registerUsername,
+          password: registerPassword,
+          nickname: registerNickname || registerUsername
+        }
+      })
 
       console.log('注册响应:', result)
 
@@ -196,7 +214,10 @@ Page({
           registerUsername: '',
           registerPassword: '',
           registerPasswordConfirm: '',
-          registerNickname: ''
+          registerNickname: '',
+          showLoginPassword: false,
+          showRegisterPassword: false,
+          showRegisterPasswordConfirm: false
         })
       } else {
         wx.showToast({
