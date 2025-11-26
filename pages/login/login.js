@@ -70,7 +70,7 @@ Page({
   },
 
   // 处理登录
-  handleLogin() {
+  async handleLogin() {
     const { loginUsername, loginPassword } = this.data
 
     if (!loginUsername || !loginPassword) {
@@ -83,66 +83,62 @@ Page({
 
     this.setData({ isSubmitting: true })
 
-    const loginUrl = `${app.globalData.apiBaseUrl}/auth/login`
-    console.log('登录请求 URL:', loginUrl)
-    console.log('API Base URL:', app.globalData.apiBaseUrl)
-
-    wx.request({
-      url: loginUrl,
-      method: 'POST',
-      data: {
-        username: loginUsername,
-        password: loginPassword
-      },
-      success: (res) => {
-        console.log('登录响应:', res)
-        if (res.data && res.data.success) {
-          const { userInfo, token } = res.data.data
-          
-          // 保存用户信息和token
-          wx.setStorageSync('userInfo', userInfo)
-          wx.setStorageSync('token', token)
-          wx.setStorageSync('userId', userInfo.id)
-          
-          // 更新全局数据
-          app.globalData.userInfo = userInfo
-          app.globalData.userId = userInfo.id
-          app.globalData.token = token
-
-          wx.showToast({
-            title: '登录成功',
-            icon: 'success'
-          })
-          
-          // 跳转到首页
-          setTimeout(() => {
-            wx.reLaunch({
-              url: '/pages/index/index'
-            })
-          }, 1500)
-        } else {
-          wx.showToast({
-            title: res.data?.message || '登录失败',
-            icon: 'none'
-          })
-          this.setData({ isSubmitting: false })
+    try {
+      console.log('开始登录请求...')
+      const result = await app.call({
+        path: '/auth/login',
+        method: 'POST',
+        data: {
+          username: loginUsername,
+          password: loginPassword
         }
-      },
-      fail: (err) => {
-        console.error('登录请求失败:', err)
-        console.error('请求 URL:', loginUrl)
-        console.error('错误详情:', JSON.stringify(err))
+      })
+
+      console.log('登录响应:', result)
+
+      if (result && result.success) {
+        const { userInfo, token } = result.data
+
+        // 保存用户信息和token
+        wx.setStorageSync('userInfo', userInfo)
+        wx.setStorageSync('token', token)
+        wx.setStorageSync('userId', userInfo.id)
+
+        // 更新全局数据
+        app.globalData.userInfo = userInfo
+        app.globalData.userId = userInfo.id
+        app.globalData.token = token
+
         wx.showToast({
-          title: '网络错误，请检查连接',
+          title: '登录成功',
+          icon: 'success'
+        })
+
+        // 跳转到首页
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '/pages/index/index'
+          })
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: result?.message || '登录失败',
           icon: 'none'
         })
         this.setData({ isSubmitting: false })
       }
-    })
+    } catch (err) {
+      console.error('登录请求失败:', err)
+      wx.showToast({
+        title: '网络错误，请检查连接',
+        icon: 'none'
+      })
+      this.setData({ isSubmitting: false })
+    }
   },
 
   // 处理注册
-  handleRegister() {
+  async handleRegister() {
     const { registerUsername, registerPassword, registerPasswordConfirm, registerNickname } = this.data
 
     // 验证输入
@@ -172,48 +168,51 @@ Page({
 
     this.setData({ isSubmitting: true })
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/auth/register`,
-      method: 'POST',
-      data: {
-        username: registerUsername,
-        password: registerPassword,
-        nickname: registerNickname || registerUsername
-      },
-      success: (res) => {
-        if (res.data && res.data.success) {
-          wx.showToast({
-            title: '注册成功，请登录',
-            icon: 'success'
-          })
-          
-          // 切换到登录模式
-          this.setData({ 
-            isLogin: true,
-            loginUsername: registerUsername,
-            loginPassword: '',
-            registerUsername: '',
-            registerPassword: '',
-            registerPasswordConfirm: '',
-            registerNickname: ''
-          })
-        } else {
-          wx.showToast({
-            title: res.data?.message || '注册失败',
-            icon: 'none'
-          })
+    try {
+      console.log('开始注册请求...')
+      const result = await app.call({
+        path: '/auth/register',
+        method: 'POST',
+        data: {
+          username: registerUsername,
+          password: registerPassword,
+          nickname: registerNickname || registerUsername
         }
-        this.setData({ isSubmitting: false })
-      },
-      fail: (err) => {
-        console.error('注册请求失败:', err)
+      })
+
+      console.log('注册响应:', result)
+
+      if (result && result.success) {
         wx.showToast({
-          title: '网络错误，请检查连接',
+          title: '注册成功，请登录',
+          icon: 'success'
+        })
+
+        // 切换到登录模式
+        this.setData({
+          isLogin: true,
+          loginUsername: registerUsername,
+          loginPassword: '',
+          registerUsername: '',
+          registerPassword: '',
+          registerPasswordConfirm: '',
+          registerNickname: ''
+        })
+      } else {
+        wx.showToast({
+          title: result?.message || '注册失败',
           icon: 'none'
         })
-        this.setData({ isSubmitting: false })
       }
-    })
+      this.setData({ isSubmitting: false })
+    } catch (err) {
+      console.error('注册请求失败:', err)
+      wx.showToast({
+        title: '网络错误，请检查连接',
+        icon: 'none'
+      })
+      this.setData({ isSubmitting: false })
+    }
   }
 })
 

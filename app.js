@@ -1,11 +1,23 @@
 // app.js
 App({
-  onLaunch() {
+  async onLaunch() {
+    // 初始化微信云托管
+    try {
+      wx.cloud.init()
+      console.log('微信云托管初始化成功')
+    } catch (e) {
+      console.error('微信云托管初始化失败:', e)
+    }
+
     // 初始化API配置
     this.globalData = {
       userId: null,
       userInfo: null,
       token: null,
+      // 云托管环境配置
+      cloudEnv: 'prod-0gn9dgzia67371b0', // 替换为你的云托管环境ID
+      cloudService: 'express-iayq', // 替换为你的服务名称
+      // 备用：公网访问地址（如果云调用失败）
       apiBaseUrl: 'https://express-iayq-202839-6-1388611962.sh.run.tcloudbase.com/api'
     }
     
@@ -79,6 +91,101 @@ App({
     wx.reLaunch({
       url: '/pages/login/login'
     })
+  },
+
+  /**
+   * 微信云托管调用方法（推荐使用）
+   * 优势：不需要配置合法域名，走内网，性能更好
+   * @param {Object} options - 请求配置
+   * @param {string} options.path - 请求路径，如 '/auth/login'
+   * @param {string} options.method - HTTP 方法，默认 'GET'
+   * @param {Object} options.data - 请求数据
+   * @param {Object} options.header - 请求头
+   * @returns {Promise} 返回响应数据
+   */
+  async callCloud(options = {}) {
+    const that = this
+    const { path = '/', method = 'GET', data = {}, header = {} } = options
+
+    try {
+      // 确保云托管已初始化
+      if (!that.cloud) {
+        that.cloud = wx.cloud
+      }
+
+      const result = await that.cloud.callContainer({
+        config: {
+          env: that.globalData.cloudEnv
+        },
+        path: path,
+        method: method,
+        data: data,
+        header: {
+          'X-WX-SERVICE': that.globalData.cloudService,
+          'Content-Type': 'application/json',
+          ...header
+        }
+      })
+
+      console.log(`云托管调用成功 [${method} ${path}]`, result)
+      return result.data
+    } catch (e) {
+      console.error(`云托管调用失败 [${method} ${path}]:`, e)
+      throw new Error(`云托管调用失败: ${e.message}`)
+    }
+  },
+
+  /**
+   * 备用方法：使用公网访问（如果云调用失败）
+   * @param {Object} options - 请求配置
+   * @returns {Promise} 返回响应数据
+   */
+  async callPublic(options = {}) {
+    const that = this
+    const { path = '/', method = 'GET', data = {}, header = {} } = options
+    const url = that.globalData.apiBaseUrl + path
+
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: url,
+        method: method,
+        data: data,
+        header: {
+          'Content-Type': 'application/json',
+          ...header
+        },
+        success: (res) => {
+          console.log(`公网调用成功 [${method} ${path}]`, res)
+          resolve(res.data)
+        },
+        fail: (err) => {
+          console.error(`公网调用失败 [${method} ${path}]:`, err)
+          reject(err)
+        }
+      })
+    })
+  },
+
+  /**
+   * 智能调用方法：优先使用云调用，失败时自动降级到公网访问
+   * @param {Object} options - 请求配置
+   * @returns {Promise} 返回响应数据
+   */
+  async call(options = {}) {
+    const that = this
+    try {
+      // 优先使用云调用
+      return await that.callCloud(options)
+    } catch (e) {
+      console.warn('云调用失败，自动降级到公网访问:', e.message)
+      try {
+        // 降级到公网访问
+        return await that.callPublic(options)
+      } catch (err) {
+        console.error('公网访问也失败了:', err)
+        throw err
+      }
+    }
   }
 })
 
