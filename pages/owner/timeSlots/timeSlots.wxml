@@ -1,0 +1,38 @@
+<!--pages/owner/timeSlots/timeSlots.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">时间单元设置</view>
+    <view class="subtitle">设置每日可预约的时间段</view>
+  </view>
+
+  <view class="time-slots-list">
+    <view class="slot-item" wx:for="{{timeSlots}}" wx:key="index">
+      <view class="slot-time">{{item.startTime}} - {{item.endTime}}</view>
+      <view class="slot-actions">
+        <button class="btn-delete" size="mini" bindtap="deleteSlot" data-index="{{index}}">删除</button>
+      </view>
+    </view>
+    
+    <view class="empty" wx:if="{{timeSlots.length === 0}}">
+      暂无时间单元，请添加
+    </view>
+  </view>
+
+  <view class="add-section">
+    <view class="add-title">添加时间单元</view>
+    <view class="form-group">
+      <view class="label">开始时间</view>
+      <picker mode="time" value="{{startTime}}" bindchange="onStartTimeChange">
+        <view class="picker">{{startTime || '请选择开始时间'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="label">结束时间</view>
+      <picker mode="time" value="{{endTime}}" bindchange="onEndTimeChange">
+        <view class="picker">{{endTime || '请选择结束时间'}}</view>
+      </picker>
+    </view>
+    <button class="btn-add" bindtap="addTimeSlot">添加</button>
+  </view>
+</view>
+

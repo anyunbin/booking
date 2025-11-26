@@ -1,0 +1,267 @@
+<!--pages/scheduleTable/scheduleTable.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">日程表格</view>
+    <view class="subtitle">统一管理日程、预约和审批</view>
+  </view>
+
+  <!-- 全局设置 -->
+  <view class="global-settings">
+    <view class="setting-item">
+      <view class="setting-label">日程是否公开</view>
+      <switch checked="{{globalIsPublic}}" bindchange="onGlobalPublicChange" color="#667eea" />
+      <text class="setting-text">{{globalIsPublic ? '好友可见' : '仅自己可见'}}</text>
+    </view>
+  </view>
+
+  <!-- 日期范围选择 -->
+  <view class="date-range">
+    <view class="range-selector">
+      <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+        <view class="date-picker">开始：{{startDate}}</view>
+      </picker>
+      <text class="range-separator">至</text>
+      <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+        <view class="date-picker">结束：{{endDate}}</view>
+      </picker>
+    </view>
+    <view class="quick-select">
+      <text class="quick-btn" bindtap="setDateRange" data-days="7">7天</text>
+      <text class="quick-btn" bindtap="setDateRange" data-days="14">14天</text>
+      <text class="quick-btn" bindtap="setDateRange" data-days="30">30天</text>
+    </view>
+  </view>
+
+  <!-- 时间段选择 -->
+  <view class="time-range">
+    <view class="time-label">时间段：</view>
+    <picker mode="time" value="{{timeStart}}" bindchange="onTimeStartChange">
+      <view class="time-picker">{{timeStart || '09:00'}}</view>
+    </picker>
+    <text class="time-separator">-</text>
+    <picker mode="time" value="{{timeEnd}}" bindchange="onTimeEndChange">
+      <view class="time-picker">{{timeEnd || '18:00'}}</view>
+    </picker>
+  </view>
+
+  <!-- 图例说明 -->
+  <view class="legend">
+    <view class="legend-item">
+      <view class="legend-color empty"></view>
+      <text>空闲</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color mySchedule"></view>
+      <text>我的日程</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color booked"></view>
+      <text>已预约</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color pending"></view>
+      <text>待审批</text>
+    </view>
+  </view>
+
+  <!-- 表格容器 -->
+  <scroll-view class="table-container" scroll-x="true" scroll-y="true">
+    <view class="table-wrapper">
+      <!-- 表头：日期（可点击快速录入） -->
+      <view class="table-header">
+        <view class="header-cell time-header">时间</view>
+        <view class="header-cell date-cell {{item.isToday ? 'today' : ''}} {{item.isWeekend ? 'weekend' : ''}}" 
+              wx:for="{{dateList}}" 
+              wx:key="date"
+              data-date="{{item.date}}"
+              bindtap="onDateHeaderTap">
+          <view class="date-text">{{item.dateText}}</view>
+          <view class="weekday-text">{{item.weekday}}</view>
+          <view class="weekend-badge" wx:if="{{item.isWeekend}}">休</view>
+          <view class="date-badge" wx:if="{{item.scheduleCount > 0 && !item.isWeekend}}">
+            {{item.scheduleCount}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 表格主体 -->
+      <view class="table-body">
+        <view class="table-row" wx:for="{{timeSlots}}" wx:key="time" wx:for-item="timeSlot">
+          <!-- 时间列 -->
+          <view class="row-header">{{timeSlot}}</view>
+          <!-- 日期列 -->
+          <view class="table-cell {{tableData[date.date + '_' + timeSlot].status}} {{tableData[date.date + '_' + timeSlot].isContinuation ? 'continuation' : ''}} {{tableData[date.date + '_' + timeSlot].isFirstCell && tableData[date.date + '_' + timeSlot].spanCount > 1 ? 'merged-first' : ''}} {{selectedCells.indexOf(date.date + '_' + timeSlot) !== -1 ? 'selected' : ''}}" 
+                wx:for="{{dateList}}" 
+                wx:key="date" 
+                wx:for-item="date"
+                style="{{tableData[date.date + '_' + timeSlot].isFirstCell && tableData[date.date + '_' + timeSlot].spanCount > 1 ? 'height: ' + (tableData[date.date + '_' + timeSlot].spanCount * 100) + 'rpx;' : ''}}"
+                data-date="{{date.date}}"
+                data-time="{{timeSlot}}"
+                bindtap="onCellTap"
+                bindlongpress="onCellLongPress">
+            <view class="cell-content" wx:if="{{!tableData[date.date + '_' + timeSlot].isContinuation}}">
+              <!-- 时间范围显示（所有日程都显示） -->
+              <view class="cell-time-range" wx:if="{{tableData[date.date + '_' + timeSlot].startTime && tableData[date.date + '_' + timeSlot].endTime && tableData[date.date + '_' + timeSlot].status === 'mySchedule'}}">
+                {{tableData[date.date + '_' + timeSlot].startTime}} - {{tableData[date.date + '_' + timeSlot].endTime}}
+              </view>
+              <!-- 预约人显示 -->
+              <view class="cell-guest" wx:if="{{tableData[date.date + '_' + timeSlot].guestName}}">
+                {{tableData[date.date + '_' + timeSlot].guestName}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 多选操作栏 -->
+  <view class="multi-select-bar" wx:if="{{selectedCells.length > 0}}">
+    <text class="select-count">已选择 {{selectedCells.length}} 个时间段</text>
+    <button class="btn-confirm-select" bindtap="confirmMultiSelect">确认设置</button>
+    <button class="btn-cancel-select" bindtap="clearSelection">取消</button>
+  </view>
+</view>
+
+<!-- 日期快速录入弹窗 -->
+<view class="modal" wx:if="{{showDateQuickModal}}" bindtap="closeDateQuickModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-title">快速设置日程 - {{selectedQuickDate}}</view>
+    <view class="form-group">
+      <view class="label">开始时间</view>
+      <picker mode="time" value="{{quickStartTime}}" bindchange="onQuickStartTimeChange">
+        <view class="picker">{{quickStartTime || '09:00'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="label">结束时间</view>
+      <picker mode="time" value="{{quickEndTime}}" bindchange="onQuickEndTimeChange">
+        <view class="picker">{{quickEndTime || '18:00'}}</view>
+      </picker>
+    </view>
+    <view class="form-group">
+      <view class="label">单个日程时长</view>
+      <picker mode="selector" range="{{scheduleDurationOptions}}" range-key="label" value="{{quickDurationMultiplierIndex}}" bindchange="onQuickDurationMultiplierChange">
+        <view class="picker">{{scheduleDurationOptions[quickDurationMultiplierIndex].label}}</view>
+      </picker>
+      <text class="input-hint">最小时间单元为30分钟，日程时长为30分钟的整数倍</text>
+    </view>
+    <view class="form-group">
+      <view class="label">休息间隔（分钟）</view>
+      <input class="input" type="digit" placeholder="0" value="{{quickRestInterval}}" bindinput="onQuickRestIntervalInput" />
+      <text class="input-hint">时间单元之间的休息时间，留空或0表示无休息</text>
+    </view>
+    <view class="quick-preview" wx:if="{{quickStartTime && quickEndTime}}">
+      <view class="preview-title">预览：</view>
+      <scroll-view class="preview-items" scroll-y="true" style="max-height: 400rpx;">
+        <view class="preview-item" wx:for="{{quickPreview}}" wx:key="index">
+          {{item.startTime}} - {{item.endTime}}
+          <text wx:if="{{item.restAfter}}">（休息{{item.restAfter}}分钟）</text>
+        </view>
+      </scroll-view>
+    </view>
+    <view class="modal-buttons">
+      <button class="btn-cancel" bindtap="closeDateQuickModal">取消</button>
+      <button class="btn-confirm" bindtap="confirmQuickSet">确认设置</button>
+    </view>
+  </view>
+</view>
+
+<!-- 单元格操作弹窗 -->
+<view class="modal" wx:if="{{showCellModal}}" bindtap="closeCellModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-title">{{modalTitle}}</view>
+    
+    <!-- 日程设置 -->
+    <view wx:if="{{cellAction === 'setSchedule'}}">
+      <view class="modal-info">
+        <text>日期：{{selectedDate}}</text>
+        <text>开始时间：{{selectedTime}}</text>
+      </view>
+      <view class="form-group">
+        <view class="label">单个日程时长</view>
+        <picker mode="selector" range="{{scheduleDurationOptions}}" range-key="label" value="{{cellDurationMultiplierIndex}}" bindchange="onCellDurationMultiplierChange">
+          <view class="picker">{{scheduleDurationOptions[cellDurationMultiplierIndex].label}}</view>
+        </picker>
+        <text class="input-hint">最小时间单元为30分钟，日程时长为30分钟的整数倍</text>
+      </view>
+      <view class="modal-info" wx:if="{{cellEndTime}}">
+        <text>结束时间：{{cellEndTime}}</text>
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeCellModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmSetSchedule">确认设置</button>
+        <button class="btn-delete" bindtap="deleteSchedule" wx:if="{{hasSchedule}}">删除</button>
+      </view>
+    </view>
+
+    <!-- 预约他人日程 -->
+    <view wx:if="{{cellAction === 'bookSchedule'}}">
+      <view class="modal-info">
+        <text>日期：{{selectedDate}}</text>
+        <text>时间：{{selectedTime}} - {{scheduleEndTime}}</text>
+        <text>所有者：{{scheduleOwner}}</text>
+      </view>
+      <view class="form-group">
+        <view class="label">备注（可选）</view>
+        <textarea class="textarea" placeholder="请输入预约备注" value="{{bookingNote}}" bindinput="onBookingNoteInput" maxlength="200" />
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeCellModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmBooking">提交预约</button>
+      </view>
+    </view>
+
+    <!-- 预约审批 -->
+    <view wx:if="{{cellAction === 'approveRequest'}}">
+      <view class="modal-info">
+        <text>日期：{{selectedDate}}</text>
+        <text>时间：{{selectedTime}} - {{scheduleEndTime}}</text>
+        <text>预约者：{{requestGuest}}</text>
+        <text wx:if="{{requestNote}}">备注：{{requestNote}}</text>
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeCellModal">取消</button>
+        <button class="btn-approve" bindtap="approveRequest">同意</button>
+        <button class="btn-reject" bindtap="rejectRequest">驳回</button>
+      </view>
+    </view>
+
+    <!-- 帮人预约 -->
+    <view wx:if="{{cellAction === 'bookForOthers'}}">
+      <view class="modal-info">
+        <text>日期：{{selectedDate}}</text>
+        <text>时间：{{selectedTime}} - {{scheduleEndTime}}</text>
+        <text>时长：{{scheduleDurationText}}（{{scheduleDurationMultiplier}}个时间单元）</text>
+        <text>这是您的开放日程，可以帮他人预约</text>
+      </view>
+      <view class="form-group">
+        <view class="label">预约人姓名</view>
+        <input class="input" type="text" placeholder="请输入预约人姓名" value="{{bookingGuestName}}" bindinput="onBookingGuestNameInput" />
+      </view>
+      <view class="form-group">
+        <view class="label">备注（可选）</view>
+        <textarea class="textarea" placeholder="请输入备注" value="{{bookingNote}}" bindinput="onBookingNoteInput" maxlength="200" />
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeCellModal">取消</button>
+        <button class="btn-edit" bindtap="editSchedule" wx:if="{{hasSchedule}}">编辑</button>
+        <button class="btn-confirm" bindtap="confirmBookForOthers">帮人预约</button>
+      </view>
+    </view>
+
+    <!-- 查看已预约详情 -->
+    <view wx:if="{{cellAction === 'viewBooked'}}">
+      <view class="modal-info">
+        <text>日期：{{selectedDate}}</text>
+        <text>时间：{{selectedTime}} - {{scheduleEndTime}}</text>
+        <text>预约人：{{requestGuest}}</text>
+        <text wx:if="{{requestNote}}">备注：{{requestNote}}</text>
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeCellModal">关闭</button>
+        <button class="btn-delete" bindtap="deleteSchedule" wx:if="{{hasSchedule}}">删除日程</button>
+      </view>
+    </view>
+  </view>
+</view>

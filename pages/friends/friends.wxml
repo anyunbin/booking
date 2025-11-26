@@ -1,0 +1,27 @@
+<!--pages/friends/friends.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">我的好友</view>
+    <view class="subtitle">查看好友的公开日程</view>
+  </view>
+
+  <button class="btn-add-friend" bindtap="goToAddFriend">+ 添加好友</button>
+
+  <view class="friends-list">
+    <view class="friend-item" wx:for="{{friends}}" wx:key="id" bindtap="viewFriendSchedule" data-id="{{item.id}}">
+      <view class="friend-avatar">{{item.name.charAt(0)}}</view>
+      <view class="friend-info">
+        <view class="friend-name">{{item.name}}</view>
+        <view class="friend-id">ID: {{item.id}}</view>
+      </view>
+      <view class="friend-arrow">></view>
+    </view>
+    
+    <view class="empty" wx:if="{{friends.length === 0}}">
+      <view class="empty-icon">👥</view>
+      <view class="empty-text">还没有好友</view>
+      <view class="empty-desc">添加好友后可以查看他们的公开日程</view>
+    </view>
+  </view>
+</view>
+

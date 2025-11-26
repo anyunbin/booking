@@ -1,0 +1,22 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/schedule/schedule",
+    "pages/scheduleTable/scheduleTable",
+    "pages/friends/friends",
+    "pages/friends/addFriend/addFriend",
+    "pages/friends/friendSchedule/friendSchedule",
+    "pages/book/book",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "预约系统",
+    "navigationBarTextStyle": "black"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

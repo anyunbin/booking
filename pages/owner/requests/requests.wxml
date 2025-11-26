@@ -1,0 +1,41 @@
+<!--pages/owner/requests/requests.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">预约请求</view>
+    <view class="subtitle">处理客人的预约申请</view>
+  </view>
+
+  <view class="tabs">
+    <view class="tab-item {{currentTab === 'pending' ? 'active' : ''}}" bindtap="switchTab" data-tab="pending">
+      待处理
+    </view>
+    <view class="tab-item {{currentTab === 'approved' ? 'active' : ''}}" bindtap="switchTab" data-tab="approved">
+      已同意
+    </view>
+    <view class="tab-item {{currentTab === 'rejected' ? 'active' : ''}}" bindtap="switchTab" data-tab="rejected">
+      已驳回
+    </view>
+  </view>
+
+  <view class="requests-list">
+    <view class="request-item" wx:for="{{requests}}" wx:key="id">
+      <view class="request-info">
+        <view class="guest-name">{{item.guestName}}</view>
+        <view class="request-time">{{item.date}} {{item.startTime}} - {{item.endTime}}</view>
+        <view class="request-note" wx:if="{{item.note}}">备注：{{item.note}}</view>
+      </view>
+      <view class="request-actions" wx:if="{{currentTab === 'pending'}}">
+        <button class="btn-approve" size="mini" bindtap="approveRequest" data-id="{{item.id}}">同意</button>
+        <button class="btn-reject" size="mini" bindtap="rejectRequest" data-id="{{item.id}}">驳回</button>
+      </view>
+      <view class="request-status" wx:else>
+        <text class="status-text {{item.status}}">{{item.status === 'approved' ? '已同意' : '已驳回'}}</text>
+      </view>
+    </view>
+    
+    <view class="empty" wx:if="{{requests.length === 0}}">
+      暂无{{currentTab === 'pending' ? '待处理' : currentTab === 'approved' ? '已同意' : '已驳回'}}的请求
+    </view>
+  </view>
+</view>
+

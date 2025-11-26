@@ -1,0 +1,36 @@
+<!--pages/guest/schedule/schedule.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="owner-name">{{ownerName}}的日程</view>
+    <view class="subtitle">选择时间段进行预约</view>
+  </view>
+
+  <view class="schedule-list">
+    <view class="date-section" wx:for="{{schedules}}" wx:key="date">
+      <view class="date-header">{{item.date}}</view>
+      <view class="schedule-items">
+        <view class="schedule-item {{schedule.status === 'booked' ? 'booked' : ''}}" 
+              wx:for="{{item.items}}" 
+              wx:key="id" 
+              wx:for-item="schedule"
+              bindtap="bookSchedule"
+              data-schedule="{{schedule}}">
+          <view class="schedule-info">
+            <view class="schedule-time">{{schedule.startTime}} - {{schedule.endTime}}</view>
+            <view class="schedule-status">
+              {{schedule.status === 'booked' ? '已预约' : schedule.status === 'pending' ? '待审核' : '可预约'}}
+            </view>
+          </view>
+          <view class="schedule-action" wx:if="{{schedule.status === 'available'}}">
+            <text class="action-text">预约</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty" wx:if="{{schedules.length === 0}}">
+      暂无可用日程
+    </view>
+  </view>
+</view>
+

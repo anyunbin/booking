@@ -1,0 +1,129 @@
+/* pages/guest/addOwner/addOwner.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 40rpx;
+}
+
+.header {
+  margin-bottom: 40rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.add-methods {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+}
+
+.method-tab {
+  display: flex;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  padding: 5rpx;
+  margin-bottom: 40rpx;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #666;
+  border-radius: 10rpx;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-weight: 500;
+}
+
+.method-content {
+  min-height: 200rpx;
+}
+
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.input {
+  padding: 20rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.btn-search,
+.btn-scan {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 10rpx;
+  padding: 25rpx;
+  font-size: 28rpx;
+}
+
+.qr-scanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200rpx;
+}
+
+.search-result {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.result-id {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.btn-add {
+  background: #2ed573;
+  color: #fff;
+  border-radius: 10rpx;
+  padding: 15rpx 30rpx;
+  font-size: 28rpx;
+}
+

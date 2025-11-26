@@ -1,0 +1,55 @@
+<!--pages/friends/addFriend/addFriend.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">添加好友</view>
+    <view class="subtitle">通过昵称搜索并添加好友</view>
+  </view>
+
+  <view class="search-section">
+    <view class="search-box">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" type="text" placeholder="请输入好友昵称或用户名" value="{{searchKeyword}}" bindinput="onSearchInput" bindconfirm="searchUsers" />
+      <button class="btn-search" bindtap="searchUsers" wx:if="{{searchKeyword}}">搜索</button>
+    </view>
+  </view>
+
+  <!-- 搜索结果列表 -->
+  <view class="search-results" wx:if="{{searchResults.length > 0}}">
+    <view class="result-header">
+      <text>找到 {{searchResults.length}} 个用户</text>
+    </view>
+    <view class="result-list">
+      <view class="result-item" wx:for="{{searchResults}}" wx:key="id">
+        <view class="result-avatar">
+          <image wx:if="{{item.avatar_url}}" src="{{item.avatar_url}}" mode="aspectFill"></image>
+          <text wx:else>{{item.avatarText}}</text>
+        </view>
+        <view class="result-info">
+          <view class="result-name">{{item.nickname || item.name || '未设置昵称'}}</view>
+          <view class="result-username">@{{item.username}}</view>
+        </view>
+        <button class="btn-add {{item.isFriend ? 'btn-disabled' : ''}}" 
+                bindtap="addFriend" 
+                data-friend="{{item}}"
+                disabled="{{item.isFriend}}">
+          {{item.isFriend ? '已是好友' : '添加'}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{searchKeyword && searchResults.length === 0 && !isSearching}}">
+    <text class="empty-icon">🔍</text>
+    <text class="empty-text">未找到相关用户</text>
+    <text class="empty-hint">请尝试其他关键词</text>
+  </view>
+
+  <!-- 初始提示 -->
+  <view class="empty-state" wx:if="{{!searchKeyword}}">
+    <text class="empty-icon">👥</text>
+    <text class="empty-text">搜索好友</text>
+    <text class="empty-hint">输入昵称或用户名搜索</text>
+  </view>
+</view>
+

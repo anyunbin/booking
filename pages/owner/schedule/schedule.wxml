@@ -1,0 +1,69 @@
+<!--pages/owner/schedule/schedule.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">日程管理</view>
+    <view class="subtitle">管理您的日程安排</view>
+  </view>
+
+  <view class="add-methods">
+    <button class="method-btn voice-btn" bindtap="addByVoice">
+      <view class="method-icon">🎤</view>
+      <view class="method-text">语音设置</view>
+    </button>
+    <button class="method-btn manual-btn" bindtap="addManually">
+      <view class="method-icon">✏️</view>
+      <view class="method-text">手动设置</view>
+    </button>
+  </view>
+
+  <view class="schedule-list">
+    <view class="date-section" wx:for="{{schedules}}" wx:key="date">
+      <view class="date-header">{{item.date}}</view>
+      <view class="schedule-items">
+        <view class="schedule-item" wx:for="{{item.items}}" wx:key="id" wx:for-item="schedule">
+          <view class="schedule-info">
+            <view class="schedule-time">{{schedule.startTime}} - {{schedule.endTime}}</view>
+            <view class="schedule-status" wx:if="{{schedule.status}}">
+              {{schedule.status === 'booked' ? '已预约' : '空闲'}}
+            </view>
+          </view>
+          <button class="btn-delete" size="mini" bindtap="deleteSchedule" data-id="{{schedule.id}}">删除</button>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty" wx:if="{{schedules.length === 0}}">
+      暂无日程安排
+    </view>
+  </view>
+
+  <!-- 手动添加日程弹窗 -->
+  <view class="modal" wx:if="{{showManualModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-title">手动添加日程</view>
+      <view class="form-group">
+        <view class="label">日期</view>
+        <picker mode="date" value="{{scheduleDate}}" bindchange="onDateChange">
+          <view class="picker">{{scheduleDate || '请选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <view class="label">开始时间</view>
+        <picker mode="time" value="{{scheduleStartTime}}" bindchange="onScheduleStartTimeChange">
+          <view class="picker">{{scheduleStartTime || '请选择开始时间'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <view class="label">结束时间</view>
+        <picker mode="time" value="{{scheduleEndTime}}" bindchange="onScheduleEndTimeChange">
+          <view class="picker">{{scheduleEndTime || '请选择结束时间'}}</view>
+        </picker>
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmAddSchedule">确认</button>
+      </view>
+    </view>
+  </view>
+</view>
+

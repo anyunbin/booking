@@ -1,0 +1,187 @@
+<!--pages/schedule/schedule.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">日程管理</view>
+    <view class="subtitle">管理您的日程安排和预约</view>
+  </view>
+
+  <!-- 功能标签页 -->
+  <view class="tabs">
+    <view class="tab-item {{currentTab === 'schedules' ? 'active' : ''}}" bindtap="switchTab" data-tab="schedules">
+      日程设置
+    </view>
+    <view class="tab-item {{currentTab === 'requests' ? 'active' : ''}}" bindtap="switchTab" data-tab="requests">
+      预约审批
+    </view>
+  </view>
+
+  <!-- 日程设置标签页 -->
+  <view class="tab-content" wx:if="{{currentTab === 'schedules'}}">
+    <view class="tab-desc">
+      <text>设置具体某一天的日程安排</text>
+    </view>
+    <view class="add-methods">
+      <button class="method-btn voice-btn" bindtap="addByVoice">
+        <view class="method-icon">🎤</view>
+        <view class="method-text">语音设置</view>
+      </button>
+      <button class="method-btn manual-btn" bindtap="addManually">
+        <view class="method-icon">✏️</view>
+        <view class="method-text">手动设置</view>
+      </button>
+    </view>
+
+    <view class="schedule-list">
+      <view class="date-section" wx:for="{{schedules}}" wx:key="date">
+        <view class="date-header">{{item.date}}</view>
+        <view class="schedule-items">
+          <view class="schedule-item" wx:for="{{item.items}}" wx:key="id" wx:for-item="schedule">
+            <view class="schedule-info">
+              <view class="schedule-time">{{schedule.startTime}} - {{schedule.endTime}}</view>
+              <view class="schedule-meta">
+                <view class="schedule-status {{schedule.status}}">
+                  {{schedule.status === 'booked' ? '已预约' : schedule.status === 'pending' ? '待审核' : '空闲'}}
+                </view>
+                <view class="schedule-public {{schedule.isPublic ? 'public' : 'private'}}" bindtap="togglePublic" data-id="{{schedule.id}}" data-public="{{schedule.isPublic}}">
+                  {{schedule.isPublic ? '公开' : '不公开'}}
+                </view>
+              </view>
+            </view>
+            <button class="btn-delete" size="mini" bindtap="deleteSchedule" data-id="{{schedule.id}}">删除</button>
+          </view>
+        </view>
+      </view>
+      
+      <view class="empty" wx:if="{{schedules.length === 0}}">
+        暂无日程安排
+      </view>
+    </view>
+  </view>
+
+  <!-- 开放时间模板标签页 -->
+  <view class="tab-content" wx:if="{{currentTab === 'timeSlots'}}">
+    <view class="tab-desc">
+      <text>设置每天哪些时间段可以开放（模板），用于快速创建日程</text>
+    </view>
+    <view class="time-slots-list">
+      <view class="slot-item" wx:for="{{timeSlots}}" wx:key="id">
+        <view class="slot-time">{{item.start_time}} - {{item.end_time}}</view>
+        <button class="btn-delete" size="mini" bindtap="deleteTimeSlot" data-id="{{item.id}}">删除</button>
+      </view>
+      
+      <view class="empty" wx:if="{{timeSlots.length === 0}}">
+        暂无开放时间模板，请添加
+      </view>
+    </view>
+
+    <view class="add-section">
+      <view class="add-title">添加开放时间模板</view>
+      <view class="form-group">
+        <view class="label">开始时间</view>
+        <picker mode="time" value="{{timeSlotStartTime}}" bindchange="onTimeSlotStartTimeChange">
+          <view class="picker">{{timeSlotStartTime || '请选择开始时间'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <view class="label">结束时间</view>
+        <picker mode="time" value="{{timeSlotEndTime}}" bindchange="onTimeSlotEndTimeChange">
+          <view class="picker">{{timeSlotEndTime || '请选择结束时间'}}</view>
+        </picker>
+      </view>
+      <button class="btn-add" bindtap="addTimeSlot">添加</button>
+    </view>
+  </view>
+
+  <!-- 预约审批标签页 -->
+  <view class="tab-content" wx:if="{{currentTab === 'requests'}}">
+    <view class="tab-desc">
+      <text>审批其他人预约您日程的请求</text>
+    </view>
+    <view class="request-tabs">
+      <view class="request-tab-item {{requestTab === 'pending' ? 'active' : ''}}" bindtap="switchRequestTab" data-tab="pending">
+        待处理
+      </view>
+      <view class="request-tab-item {{requestTab === 'approved' ? 'active' : ''}}" bindtap="switchRequestTab" data-tab="approved">
+        已同意
+      </view>
+      <view class="request-tab-item {{requestTab === 'rejected' ? 'active' : ''}}" bindtap="switchRequestTab" data-tab="rejected">
+        已驳回
+      </view>
+    </view>
+
+    <view class="requests-list">
+      <view class="request-item" wx:for="{{requests}}" wx:key="id">
+        <view class="request-info">
+          <view class="request-guest">{{item.guest_name || item.guest_id}}</view>
+          <view class="request-time">{{item.date}} {{item.start_time}} - {{item.end_time}}</view>
+          <view class="request-note" wx:if="{{item.note}}">备注：{{item.note}}</view>
+        </view>
+        <view class="request-actions" wx:if="{{requestTab === 'pending'}}">
+          <button class="btn-approve" size="mini" bindtap="approveRequest" data-id="{{item.id}}">同意</button>
+          <button class="btn-reject" size="mini" bindtap="rejectRequest" data-id="{{item.id}}">驳回</button>
+        </view>
+        <view class="request-status" wx:else>
+          <text class="status-text {{item.status}}">{{item.status === 'approved' ? '已同意' : '已驳回'}}</text>
+        </view>
+      </view>
+      
+      <view class="empty" wx:if="{{requests.length === 0}}">
+        暂无{{requestTab === 'pending' ? '待处理' : requestTab === 'approved' ? '已同意' : '已驳回'}}的预约请求
+      </view>
+    </view>
+  </view>
+
+  <!-- 手动添加日程弹窗 -->
+  <view class="modal" wx:if="{{showManualModal}}" bindtap="closeModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-title">手动添加日程</view>
+      <view class="form-group">
+        <view class="label">日期</view>
+        <picker mode="date" value="{{scheduleDate}}" bindchange="onDateChange">
+          <view class="picker">{{scheduleDate || '请选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <view class="label">开始时间</view>
+        <picker mode="time" value="{{scheduleStartTime}}" bindchange="onScheduleStartTimeChange">
+          <view class="picker">{{scheduleStartTime || '请选择开始时间'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <view class="label">结束时间</view>
+        <picker mode="time" value="{{scheduleEndTime}}" bindchange="onScheduleEndTimeChange">
+          <view class="picker">{{scheduleEndTime || '请选择结束时间'}}</view>
+        </picker>
+      </view>
+      <view class="form-group">
+        <view class="label">是否公开</view>
+        <switch checked="{{isPublic}}" bindchange="onPublicChange" color="#667eea" />
+        <text class="switch-label">{{isPublic ? '好友可见' : '仅自己可见'}}</text>
+      </view>
+      <view class="form-group">
+        <view class="label">时间段拆分</view>
+        <switch checked="{{enableSplit}}" bindchange="onSplitChange" color="#667eea" />
+        <text class="switch-label">{{enableSplit ? '启用拆分' : '单个时间段'}}</text>
+      </view>
+      <view class="form-group" wx:if="{{enableSplit}}">
+        <view class="label">拆分间隔</view>
+        <picker mode="selector" range="{{splitIntervals}}" range-key="label" value="{{splitIntervalIndex}}" bindchange="onSplitIntervalChange">
+          <view class="picker">{{splitIntervals[splitIntervalIndex].label}}</view>
+        </picker>
+        <view class="split-preview" wx:if="{{scheduleStartTime && scheduleEndTime && enableSplit}}">
+          <view class="preview-title">预览拆分结果：</view>
+          <view class="preview-items">
+            <view class="preview-item" wx:for="{{splitPreview}}" wx:key="index">
+              {{item.startTime}} - {{item.endTime}}
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="modal-buttons">
+        <button class="btn-cancel" bindtap="closeModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmAddSchedule">确认</button>
+      </view>
+    </view>
+  </view>
+</view>
+

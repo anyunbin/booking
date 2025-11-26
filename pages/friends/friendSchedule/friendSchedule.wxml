@@ -1,0 +1,125 @@
+<!--pages/friends/friendSchedule/friendSchedule.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">{{friendName}}的日程</view>
+    <view class="subtitle">仅显示公开的日程</view>
+  </view>
+
+  <!-- 日期范围选择 -->
+  <view class="date-range">
+    <view class="range-selector">
+      <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+        <view class="date-picker">开始：{{startDate}}</view>
+      </picker>
+      <text class="range-separator">至</text>
+      <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+        <view class="date-picker">结束：{{endDate}}</view>
+      </picker>
+    </view>
+    <view class="quick-select">
+      <text class="quick-btn" bindtap="setDateRange" data-days="7">7天</text>
+      <text class="quick-btn" bindtap="setDateRange" data-days="14">14天</text>
+      <text class="quick-btn" bindtap="setDateRange" data-days="30">30天</text>
+    </view>
+  </view>
+
+  <!-- 时间段选择 -->
+  <view class="time-range">
+    <view class="time-label">时间段：</view>
+    <picker mode="time" value="{{timeStart}}" bindchange="onTimeStartChange">
+      <view class="time-picker">{{timeStart || '09:00'}}</view>
+    </picker>
+    <text class="time-separator">-</text>
+    <picker mode="time" value="{{timeEnd}}" bindchange="onTimeEndChange">
+      <view class="time-picker">{{timeEnd || '18:00'}}</view>
+    </picker>
+  </view>
+
+  <!-- 图例说明 -->
+  <view class="legend">
+    <view class="legend-item">
+      <view class="legend-color empty"></view>
+      <text>空闲</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color available"></view>
+      <text>可预约</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color booked"></view>
+      <text>已预约</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-color pending"></view>
+      <text>待审核</text>
+    </view>
+  </view>
+
+  <!-- 表格容器 -->
+  <scroll-view class="table-container" scroll-x="true" scroll-y="true">
+    <view class="table-wrapper">
+      <!-- 表头：日期 -->
+      <view class="table-header">
+        <view class="header-cell time-header">时间</view>
+        <view class="header-cell date-cell {{item.isToday ? 'today' : ''}} {{item.isWeekend ? 'weekend' : ''}}" 
+              wx:for="{{dateList}}" 
+              wx:key="date">
+          <view class="date-text">{{item.dateText}}</view>
+          <view class="weekday-text">{{item.weekday}}</view>
+          <view class="weekend-badge" wx:if="{{item.isWeekend}}">休</view>
+          <view class="date-badge" wx:if="{{item.scheduleCount > 0 && !item.isWeekend}}">
+            {{item.scheduleCount}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 表格主体 -->
+      <view class="table-body">
+        <view class="table-row" wx:for="{{timeSlots}}" wx:key="time" wx:for-item="timeSlot">
+          <!-- 时间列 -->
+          <view class="row-header">{{timeSlot}}</view>
+          <!-- 日期列 -->
+          <view class="table-cell {{tableData[date.date + '_' + timeSlot].status}} {{tableData[date.date + '_' + timeSlot].isContinuation ? 'continuation' : ''}} {{tableData[date.date + '_' + timeSlot].isFirstCell && tableData[date.date + '_' + timeSlot].spanCount > 1 ? 'merged-first' : ''}}" 
+                wx:for="{{dateList}}" 
+                wx:key="date" 
+                wx:for-item="date"
+                style="{{tableData[date.date + '_' + timeSlot].isFirstCell && tableData[date.date + '_' + timeSlot].spanCount > 1 ? 'height: ' + (tableData[date.date + '_' + timeSlot].spanCount * 100) + 'rpx;' : ''}}"
+                data-date="{{date.date}}"
+                data-time="{{timeSlot}}"
+                bindtap="onCellTap">
+            <view class="cell-content" wx:if="{{!tableData[date.date + '_' + timeSlot].isContinuation}}">
+              <!-- 时间范围显示 -->
+              <view class="cell-time-range" wx:if="{{tableData[date.date + '_' + timeSlot].startTime && tableData[date.date + '_' + timeSlot].endTime && tableData[date.date + '_' + timeSlot].status === 'available'}}">
+                {{tableData[date.date + '_' + timeSlot].startTime}} - {{tableData[date.date + '_' + timeSlot].endTime}}
+              </view>
+              <!-- 预约人显示 -->
+              <view class="cell-guest" wx:if="{{tableData[date.date + '_' + timeSlot].guestName}}">
+                {{tableData[date.date + '_' + timeSlot].guestName}}
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+
+<!-- 预约弹窗 -->
+<view class="modal" wx:if="{{showBookingModal}}" bindtap="closeBookingModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-title">预约日程</view>
+    <view class="modal-info">
+      <text>日期：{{selectedDate}}</text>
+      <text>时间：{{selectedTime}} - {{scheduleEndTime}}</text>
+      <text>所有者：{{friendName}}</text>
+    </view>
+    <view class="form-group">
+      <view class="label">备注（可选）</view>
+      <textarea class="textarea" placeholder="请输入预约备注" value="{{bookingNote}}" bindinput="onBookingNoteInput" maxlength="200" />
+    </view>
+    <view class="modal-buttons">
+      <button class="btn-cancel" bindtap="closeBookingModal">取消</button>
+      <button class="btn-confirm" bindtap="confirmBooking">提交预约</button>
+    </view>
+  </view>
+</view>

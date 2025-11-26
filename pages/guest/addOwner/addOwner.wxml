@@ -1,0 +1,43 @@
+<!--pages/guest/addOwner/addOwner.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">添加主人</view>
+    <view class="subtitle">输入主人的ID或扫描二维码</view>
+  </view>
+
+  <view class="add-methods">
+    <view class="method-tab">
+      <view class="tab-item {{method === 'id' ? 'active' : ''}}" bindtap="switchMethod" data-method="id">
+        输入ID
+      </view>
+      <view class="tab-item {{method === 'qr' ? 'active' : ''}}" bindtap="switchMethod" data-method="qr">
+        扫描二维码
+      </view>
+    </view>
+
+    <view class="method-content" wx:if="{{method === 'id'}}">
+      <view class="form-group">
+        <view class="label">主人ID</view>
+        <input class="input" type="text" placeholder="请输入主人的ID" value="{{ownerId}}" bindinput="onOwnerIdInput" />
+      </view>
+      <button class="btn-search" bindtap="searchOwner">搜索</button>
+    </view>
+
+    <view class="method-content" wx:if="{{method === 'qr'}}">
+      <view class="qr-scanner">
+        <button class="btn-scan" bindtap="scanQRCode">扫描二维码</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="search-result" wx:if="{{searchResult}}">
+    <view class="result-item">
+      <view class="result-info">
+        <view class="result-name">{{searchResult.name}}</view>
+        <view class="result-id">ID: {{searchResult.id}}</view>
+      </view>
+      <button class="btn-add" bindtap="addOwner">添加</button>
+    </view>
+  </view>
+</view>
+

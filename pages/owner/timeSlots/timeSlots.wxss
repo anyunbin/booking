@@ -1,0 +1,101 @@
+/* pages/owner/timeSlots/timeSlots.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 40rpx;
+}
+
+.header {
+  margin-bottom: 40rpx;
+}
+
+.title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.time-slots-list {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  min-height: 200rpx;
+}
+
+.slot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.slot-item:last-child {
+  border-bottom: none;
+}
+
+.slot-time {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.btn-delete {
+  background: #ff4757;
+  color: #fff;
+  border-radius: 10rpx;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 60rpx 0;
+  font-size: 28rpx;
+}
+
+.add-section {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 40rpx;
+}
+
+.add-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.picker {
+  padding: 20rpx;
+  background: #f5f5f5;
+  border-radius: 10rpx;
+  color: #333;
+  font-size: 28rpx;
+}
+
+.btn-add {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 10rpx;
+  margin-top: 20rpx;
+}
+

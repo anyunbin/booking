@@ -1,0 +1,28 @@
+<!--pages/book/book.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">预约详情</view>
+  </view>
+
+  <view class="booking-info">
+    <view class="info-item">
+      <view class="info-label">日期</view>
+      <view class="info-value">{{schedule.date}}</view>
+    </view>
+    <view class="info-item">
+      <view class="info-label">时间</view>
+      <view class="info-value">{{schedule.startTime}} - {{schedule.endTime}}</view>
+    </view>
+  </view>
+
+  <view class="form-section">
+    <view class="form-group">
+      <view class="label">备注（可选）</view>
+      <textarea class="textarea" placeholder="请输入预约备注信息" value="{{note}}" bindinput="onNoteInput" maxlength="200" />
+      <view class="char-count">{{note.length}}/200</view>
+    </view>
+  </view>
+
+  <button class="btn-submit" bindtap="submitBooking">提交预约</button>
+</view>
+

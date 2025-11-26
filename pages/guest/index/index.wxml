@@ -1,0 +1,26 @@
+<!--pages/guest/index/index.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">客人端</view>
+    <view class="subtitle">查看日程并预约</view>
+  </view>
+
+  <view class="owners-list" wx:if="{{owners.length > 0}}">
+    <view class="owner-item" wx:for="{{owners}}" wx:key="id" bindtap="selectOwner" data-id="{{item.id}}">
+      <view class="owner-info">
+        <view class="owner-name">{{item.name}}</view>
+        <view class="owner-id">ID: {{item.id}}</view>
+      </view>
+      <view class="owner-arrow">></view>
+    </view>
+  </view>
+
+  <view class="empty" wx:else>
+    <view class="empty-icon">👤</view>
+    <view class="empty-text">您还没有添加主人</view>
+    <view class="empty-desc">请先添加主人才能查看日程和预约</view>
+  </view>
+
+  <button class="btn-add-owner" bindtap="goToAddOwner">+ 添加主人</button>
+</view>
+
