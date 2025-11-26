@@ -97,7 +97,7 @@ App({
    * 微信云托管调用方法（推荐使用）
    * 优势：不需要配置合法域名，走内网，性能更好
    * @param {Object} options - 请求配置
-   * @param {string} options.path - 请求路径，如 '/auth/login'
+   * @param {string} options.path - 请求路径，如 '/api/auth/login'（包含 /api 前缀）
    * @param {string} options.method - HTTP 方法，默认 'GET'
    * @param {Object} options.data - 请求数据
    * @param {Object} options.header - 请求头
@@ -112,6 +112,8 @@ App({
       if (!that.cloud) {
         that.cloud = wx.cloud
       }
+
+      console.log(`云托管调用开始 [${method} ${path}]`)
 
       const result = await that.cloud.callContainer({
         config: {

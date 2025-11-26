@@ -86,7 +86,7 @@ Page({
     try {
       console.log('开始登录请求...')
       const result = await app.call({
-        path: '/auth/login',
+        path: '/api/auth/login',
         method: 'POST',
         data: {
           username: loginUsername,
@@ -169,16 +169,16 @@ Page({
     this.setData({ isSubmitting: true })
 
     try {
-      console.log('开始注册请求...')
-      const result = await app.call({
-        path: '/auth/register',
-        method: 'POST',
-        data: {
-          username: registerUsername,
-          password: registerPassword,
-          nickname: registerNickname || registerUsername
-        }
-      })
+       console.log('开始注册请求...')
+       const result = await app.call({
+         path: '/api/auth/register',
+         method: 'POST',
+         data: {
+           username: registerUsername,
+           password: registerPassword,
+           nickname: registerNickname || registerUsername
+         }
+       })
 
       console.log('注册响应:', result)
 
