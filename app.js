@@ -6,7 +6,7 @@ App({
       userId: null,
       userInfo: null,
       token: null,
-      apiBaseUrl: 'http://11.0.119.60:3000/api'
+      apiBaseUrl: 'https://express-iayq-202839-6-1388611962.sh.run.tcloudbase.com/api'
     }
     
     // 检查登录状态
