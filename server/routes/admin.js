@@ -203,9 +203,8 @@ router.get('/schedules', async (req, res) => {
     const params = []
     
     if (userId) {
-      // 支持按用户ID、用户名、昵称或姓名搜索
-      sql += ' AND (s.user_id = ? OR u.username = ? OR u.nickname = ? OR u.name = ?)'
-      params.push(userId, userId, userId, userId)
+      sql += ' AND s.user_id = ?'
+      params.push(userId)
     }
     
     if (status) {
@@ -227,14 +226,12 @@ router.get('/schedules', async (req, res) => {
     let countSql = `
       SELECT COUNT(*) as count 
       FROM schedules s
-      LEFT JOIN users u ON s.user_id = u.id
       WHERE 1=1
     `
     const countParams = []
     if (userId) {
-      // 支持按用户ID、用户名、昵称或姓名搜索
-      countSql += ' AND (s.user_id = ? OR u.username = ? OR u.nickname = ? OR u.name = ?)'
-      countParams.push(userId, userId, userId, userId)
+      countSql += ' AND s.user_id = ?'
+      countParams.push(userId)
     }
     if (status) {
       countSql += ' AND s.status = ?'

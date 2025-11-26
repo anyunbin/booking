@@ -780,11 +780,6 @@
   color: #fff;
 }
 
-.btn-cancel-booking {
-  background: #ffa502;
-  color: #fff;
-}
-
 .btn-approve {
   background: #2ed573;
   color: #fff;

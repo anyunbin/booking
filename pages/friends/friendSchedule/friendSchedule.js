@@ -223,9 +223,8 @@ Page({
     console.log('Initialized table cells:', Object.keys(tableData).length)
 
     // 加载好友的公开日程
-    const { startDate, endDate } = this.data
     wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules?friendId=${friendId}&startDate=${startDate}&endDate=${endDate}`,
+      url: `${app.globalData.apiBaseUrl}/schedules?friendId=${friendId}`,
       method: 'GET',
       success: (res) => {
         if (res.data.success) {
@@ -292,11 +291,11 @@ Page({
   // 加载预约数据
   loadBookingData() {
     const userId = app.getUserId()
-    const { friendId, tableData, minTimeUnitMinutes, startDate, endDate } = this.data
+    const { friendId, tableData, minTimeUnitMinutes } = this.data
 
     // 加载我向这个好友发起的预约请求
     wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?guestId=${userId}&ownerId=${friendId}&startDate=${startDate}&endDate=${endDate}`,
+      url: `${app.globalData.apiBaseUrl}/requests?guestId=${userId}&ownerId=${friendId}`,
       method: 'GET',
       success: (res) => {
         if (res.data.success) {
@@ -318,8 +317,7 @@ Page({
                 newTableData[key] = {
                   ...newTableData[key],
                   status: 'pending',
-                  guestName: '我的申请',
-                  isMyRequest: true,
+                  guestName: '',
                   requestId: request.id,
                   note: request.note || ''
                 }
@@ -344,57 +342,9 @@ Page({
                 newTableData[key] = {
                   ...newTableData[key],
                   status: 'booked',
-                  guestName: '我的预约',
-                  isMyRequest: true,
+                  guestName: '',
                   requestId: request.id,
                   note: request.note || ''
-                }
-              }
-              currentMinutes += minTimeUnitMinutes
-            }
-          })
-
-          this.setData({ tableData: newTableData })
-          this.loadOtherBookingData(newTableData)
-        }
-      },
-      fail: () => {}
-    })
-  },
-
-  // 加载其他人的预约数据
-  loadOtherBookingData(tableData) {
-    const { friendId, minTimeUnitMinutes, startDate, endDate } = this.data
-
-    // 加载所有向这个好友发起的预约请求（不仅仅是我的）
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?ownerId=${friendId}&startDate=${startDate}&endDate=${endDate}`,
-      method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          const newTableData = { ...tableData }
-
-          // 已同意的请求（其他人的预约）
-          res.data.data.filter(r => r.status === 'approved').forEach(request => {
-            const startTime = request.start_time || request.startTime
-            const endTime = request.end_time || request.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-
-            // 更新所有被这个预约覆盖的单元格（包括延续单元格）
-            let currentMinutes = startMinutes
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${request.date}_${currentTime}`
-              if (newTableData[key] && !newTableData[key].isMyRequest) {
-                // 只有在不是我的请求时才显示"已被预约"
-                newTableData[key] = {
-                  ...newTableData[key],
-                  status: 'booked',
-                  guestName: '已被预约',
-                  isMyRequest: false,
-                  requestId: request.id,
-                  note: ''
                 }
               }
               currentMinutes += minTimeUnitMinutes
@@ -405,9 +355,7 @@ Page({
           this.updateDateScheduleCounts()
         }
       },
-      fail: () => {
-        this.updateDateScheduleCounts()
-      }
+      fail: () => {}
     })
   },
 
@@ -491,20 +439,6 @@ Page({
       return
     }
 
-    // 如果是我的预约或申请，显示取消选项
-    if ((cell.status === 'booked' || cell.status === 'pending') && cell.isMyRequest) {
-      wx.showActionSheet({
-        itemList: ['取消预约'],
-        success: (res) => {
-          if (res.tapIndex === 0) {
-            this.cancelBooking(cell.requestId)
-          }
-        }
-      })
-      return
-    }
-
-    // 如果是他人的预约或待审核，不能操作
     if (cell.status === 'booked' || cell.status === 'pending') {
       wx.showToast({
         title: '该时间段不可预约',
@@ -534,40 +468,6 @@ Page({
         bookingNote: ''
       })
     }
-  },
-
-  // 取消预约
-  cancelBooking(requestId) {
-    wx.showLoading({
-      title: '取消中...'
-    })
-
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests/${requestId}`,
-      method: 'DELETE',
-      success: (res) => {
-        wx.hideLoading()
-        if (res.data && res.data.success) {
-          wx.showToast({
-            title: '已取消预约',
-            icon: 'success'
-          })
-          this.loadTableData()
-        } else {
-          wx.showToast({
-            title: res.data?.message || '取消失败',
-            icon: 'none'
-          })
-        }
-      },
-      fail: () => {
-        wx.hideLoading()
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        })
-      }
-    })
   },
 
   // 关闭预约弹窗

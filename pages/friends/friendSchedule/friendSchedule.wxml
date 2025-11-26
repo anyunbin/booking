@@ -53,12 +53,6 @@
       <view class="legend-color pending"></view>
       <text>待审核</text>
     </view>
-    <view class="legend-item">
-      <view class="legend-note my-request">我的预约</view>
-    </view>
-    <view class="legend-item">
-      <view class="legend-note other-request">他人预约</view>
-    </view>
   </view>
 
   <!-- 表格容器 -->
@@ -99,7 +93,7 @@
                 {{tableData[date.date + '_' + timeSlot].startTime}} - {{tableData[date.date + '_' + timeSlot].endTime}}
               </view>
               <!-- 预约人显示 -->
-              <view class="cell-guest {{tableData[date.date + '_' + timeSlot].isMyRequest ? 'my-request' : 'other-request'}}" wx:if="{{tableData[date.date + '_' + timeSlot].guestName}}">
+              <view class="cell-guest" wx:if="{{tableData[date.date + '_' + timeSlot].guestName}}">
                 {{tableData[date.date + '_' + timeSlot].guestName}}
               </view>
             </view>

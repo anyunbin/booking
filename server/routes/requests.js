@@ -6,7 +6,7 @@ const db = require('../db')
 // 获取预约请求列表
 router.get('/', async (req, res) => {
   try {
-    const { status, ownerId, guestId, startDate, endDate } = req.query
+    const { status, ownerId, guestId } = req.query
     let sql = 'SELECT * FROM requests WHERE 1=1'
     const params = []
     
@@ -25,18 +25,6 @@ router.get('/', async (req, res) => {
       params.push(guestId)
     }
     
-    // 添加日期范围过滤
-    if (startDate && endDate) {
-      sql += ' AND date >= ? AND date <= ?'
-      params.push(startDate, endDate)
-    } else if (startDate) {
-      sql += ' AND date >= ?'
-      params.push(startDate)
-    } else if (endDate) {
-      sql += ' AND date <= ?'
-      params.push(endDate)
-    }
-
     sql += ' ORDER BY created_at DESC'
     
     const requests = await db.query(sql, params)
@@ -172,40 +160,6 @@ router.post('/:id/reject', async (req, res) => {
     res.json({
       success: true,
       message: '已驳回预约'
-    })
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    })
-  }
-})
-
-// 删除预约请求（取消预约）
-router.delete('/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-
-    // 获取请求信息
-    const requests = await db.query('SELECT * FROM requests WHERE id = ?', [id])
-    if (requests.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: '请求不存在'
-      })
-    }
-
-    const request = requests[0]
-
-    // 删除请求
-    await db.run('DELETE FROM requests WHERE id = ?', [id])
-
-    // 更新日程状态为可用
-    await db.run('UPDATE schedules SET status = ? WHERE id = ?', ['available', request.schedule_id])
-
-    res.json({
-      success: true,
-      message: '已取消预约'
     })
   } catch (error) {
     res.status(500).json({

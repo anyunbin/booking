@@ -203,7 +203,7 @@ Page({
   // 加载表格数据
   loadTableData() {
     const userId = app.getUserId()
-    const { dateList, timeSlots, globalIsPublic, minTimeUnitMinutes, startDate, endDate } = this.data
+    const { dateList, timeSlots, globalIsPublic, minTimeUnitMinutes } = this.data
     const tableData = {}
 
     // 初始化所有单元格为空
@@ -225,7 +225,7 @@ Page({
 
     // 加载自己的日程
     wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules?userId=${userId}&startDate=${startDate}&endDate=${endDate}`,
+      url: `${app.globalData.apiBaseUrl}/schedules?userId=${userId}`,
       method: 'GET',
       success: (res) => {
         if (res.data.success) {
@@ -297,11 +297,11 @@ Page({
   // 加载预约数据
   loadBookingData() {
     const userId = app.getUserId()
-    const { tableData, startDate, endDate } = this.data
+    const { tableData } = this.data
 
     // 加载待审批的预约请求
     wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?ownerId=${userId}&startDate=${startDate}&endDate=${endDate}`,
+      url: `${app.globalData.apiBaseUrl}/requests?ownerId=${userId}`,
       method: 'GET',
       success: (res) => {
         if (res.data.success) {
@@ -425,26 +425,6 @@ Page({
   // 点击日期表头快速录入
   onDateHeaderTap(e) {
     const date = e.currentTarget.dataset.date
-    const { tableData, timeSlots } = this.data
-
-    // 检查该日期是否已有日程
-    let hasSchedule = false
-    timeSlots.forEach(time => {
-      const key = `${date}_${time}`
-      const cell = tableData[key]
-      if (cell && cell.status === 'mySchedule') {
-        hasSchedule = true
-      }
-    })
-
-    if (hasSchedule) {
-      wx.showToast({
-        title: '该日期已有日程，不可批量设置',
-        icon: 'none'
-      })
-      return
-    }
-
     // 快速录入默认使用1小时（2个30分钟）
     this.setData({
       selectedQuickDate: date,
@@ -834,7 +814,6 @@ Page({
     } else if (cell.status === 'booked') {
       action = 'viewBooked'
       title = '预约详情'
-      this.setData({ hasSchedule: true })
     } else {
       // 默认情况：如果状态不明确，但确实没有日程，则显示设置日程窗口
       if (!cell.scheduleId) {
@@ -1000,20 +979,8 @@ Page({
   },
 
   deleteSchedule() {
-    const { selectedScheduleId, selectedDate, selectedTime, tableData } = this.data
+    const { selectedScheduleId } = this.data
     if (!selectedScheduleId) return
-
-    // 检查该日程是否已被预约
-    const key = `${selectedDate}_${selectedTime}`
-    const cell = tableData[key]
-
-    if (cell && (cell.status === 'booked' || cell.status === 'pending')) {
-      wx.showToast({
-        title: '已预约的日程不能删除，请先取消预约',
-        icon: 'none'
-      })
-      return
-    }
 
     wx.showModal({
       title: '确认删除',
@@ -1291,52 +1258,6 @@ Page({
         wx.showToast({ title: '已驳回', icon: 'success' })
         this.closeCellModal()
         this.loadTableData()
-      }
-    })
-  },
-
-  // 取消预约
-  cancelBooking() {
-    const { selectedRequestId } = this.data
-    if (!selectedRequestId) return
-
-    wx.showModal({
-      title: '确认取消',
-      content: '确定要取消这个预约吗？',
-      success: (res) => {
-        if (res.confirm) {
-          wx.showLoading({
-            title: '取消中...'
-          })
-
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests/${selectedRequestId}`,
-            method: 'DELETE',
-            success: (res) => {
-              wx.hideLoading()
-              if (res.data && res.data.success) {
-                wx.showToast({
-                  title: '已取消预约',
-                  icon: 'success'
-                })
-                this.closeCellModal()
-                this.loadTableData()
-              } else {
-                wx.showToast({
-                  title: res.data?.message || '取消失败',
-                  icon: 'none'
-                })
-              }
-            },
-            fail: () => {
-              wx.hideLoading()
-              wx.showToast({
-                title: '网络错误',
-                icon: 'none'
-              })
-            }
-          })
-        }
       }
     })
   }

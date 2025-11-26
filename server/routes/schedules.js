@@ -6,7 +6,7 @@ const db = require('../db')
 // 获取日程列表
 router.get('/', async (req, res) => {
   try {
-    const { userId, friendId, startDate, endDate } = req.query
+    const { userId, friendId } = req.query
     let sql = `
       SELECT s.*, u.name as user_name, u.id as owner_id
       FROM schedules s
@@ -24,18 +24,6 @@ router.get('/', async (req, res) => {
       params.push(friendId)
     }
     
-    // 添加日期范围过滤
-    if (startDate && endDate) {
-      sql += ' AND s.date >= ? AND s.date <= ?'
-      params.push(startDate, endDate)
-    } else if (startDate) {
-      sql += ' AND s.date >= ?'
-      params.push(startDate)
-    } else if (endDate) {
-      sql += ' AND s.date <= ?'
-      params.push(endDate)
-    }
-
     sql += ' ORDER BY s.date, s.start_time'
     
     const schedules = await db.query(sql, params)
