@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tips {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>📊 管理后台</h1>
+            <p>预约系统管理平台</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="password">管理员密码</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="请输入管理员密码"
+                    required
+                    autocomplete="off"
+                >
+            </div>
+
+            <button type="submit" class="login-button" id="loginButton">
+                登录
+            </button>
+
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+        </form>
+
+        <div class="tips">
+            <strong>💡 提示：</strong><br>
+            • 默认密码：admin123<br>
+            • 登录后可查看系统数据<br>
+            • 请妥善保管密码
+        </div>
+    </div>
+
+    <script>
+        // 检查是否已登录
+        function checkLogin() {
+            const token = localStorage.getItem('adminToken')
+            if (token) {
+                redirectToAdmin()
+            }
+        }
+
+        // 处理登录
+        async function handleLogin(event) {
+            event.preventDefault()
+
+            const password = document.getElementById('password').value
+            const loginButton = document.getElementById('loginButton')
+            const errorMessage = document.getElementById('errorMessage')
+            const successMessage = document.getElementById('successMessage')
+
+            // 清除之前的消息
+            errorMessage.classList.remove('show')
+            successMessage.classList.remove('show')
+
+            // 禁用按钮并显示加载状态
+            loginButton.disabled = true
+            loginButton.innerHTML = '<span class="loading"></span>验证中...'
+
+            try {
+                // 测试密码是否正确
+                const response = await fetch('/api/admin/stats', {
+                    headers: {
+                        'x-admin-password': password
+                    }
+                })
+
+                if (response.ok) {
+                    // 密码正确，保存 token
+                    localStorage.setItem('adminToken', password)
+                    successMessage.textContent = '✓ 登录成功，正在跳转...'
+                    successMessage.classList.add('show')
+
+                    // 延迟跳转
+                    setTimeout(() => {
+                        redirectToAdmin()
+                    }, 1000)
+                } else if (response.status === 401) {
+                    // 密码错误
+                    errorMessage.textContent = '✗ 密码错误，请重试'
+                    errorMessage.classList.add('show')
+                    loginButton.disabled = false
+                    loginButton.innerHTML = '登录'
+                } else {
+                    throw new Error('服务器错误')
+                }
+            } catch (error) {
+                console.error('登录错误:', error)
+                errorMessage.textContent = '✗ 网络错误，请检查连接'
+                errorMessage.classList.add('show')
+                loginButton.disabled = false
+                loginButton.innerHTML = '登录'
+            }
+        }
+
+        // 跳转到管理后台
+        function redirectToAdmin() {
+            window.location.href = '/admin/'
+        }
+
+        // 页面加载时检查登录状态
+        window.addEventListener('load', checkLogin)
+    </script>
+</body>
+</html>
+

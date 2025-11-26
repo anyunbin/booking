@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>预约系统管理后台</title>
+  <script>
+    // 检查登录状态
+    (function() {
+      const token = localStorage.getItem('adminToken')
+      if (!token) {
+        // 未登录，重定向到登录页面
+        window.location.href = '/admin/login.html'
+      }
+    })()
+  </script>
   <style>
     * {
       margin: 0;
