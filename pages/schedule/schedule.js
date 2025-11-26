@@ -42,22 +42,21 @@ Page({
   },
 
   loadSchedules() {
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules`,
-      method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          this.setData({
-            schedules: this.groupSchedulesByDate(res.data.data || [])
-          })
-        }
-      },
-      fail: () => {
-        const schedules = wx.getStorageSync('schedules') || []
+    app.call({
+      path: '/api/schedules',
+      method: 'GET'
+    }).then((res) => {
+      if (res && res.success) {
         this.setData({
-          schedules: this.groupSchedulesByDate(schedules)
+          schedules: this.groupSchedulesByDate(res.data || [])
         })
       }
+    }).catch((err) => {
+      console.error('加载日程失败:', err)
+      const schedules = wx.getStorageSync('schedules') || []
+      this.setData({
+        schedules: this.groupSchedulesByDate(schedules)
+      })
     })
   },
 
@@ -247,22 +246,21 @@ Page({
     const { id, public: isPublic } = e.currentTarget.dataset
     const newPublic = !isPublic
     
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules/${id}/public`,
+    app.call({
+      path: `/api/schedules/${id}/public`,
       method: 'PATCH',
-      data: { isPublic: newPublic },
-      success: () => {
-        this.loadSchedules()
-      },
-      fail: () => {
-        const allSchedules = wx.getStorageSync('schedules') || []
-        const index = allSchedules.findIndex(s => s.id == id)
-        if (index !== -1) {
-          allSchedules[index].isPublic = newPublic
-          wx.setStorageSync('schedules', allSchedules)
-        }
-        this.loadSchedules()
+      data: { isPublic: newPublic }
+    }).then(() => {
+      this.loadSchedules()
+    }).catch((err) => {
+      console.error('更新日程公开状态失败:', err)
+      const allSchedules = wx.getStorageSync('schedules') || []
+      const index = allSchedules.findIndex(s => s.id == id)
+      if (index !== -1) {
+        allSchedules[index].isPublic = newPublic
+        wx.setStorageSync('schedules', allSchedules)
       }
+      this.loadSchedules()
     })
   },
 
@@ -338,29 +336,25 @@ Page({
     let failCount = 0
     const total = schedules.length
 
-    schedules.forEach((schedule, index) => {
-      wx.request({
-        url: `${app.globalData.apiBaseUrl}/schedules`,
+    const requests = schedules.map((schedule) => {
+      return app.call({
+        path: '/api/schedules',
         method: 'POST',
-        data: schedule,
-        success: () => {
-          successCount++
-          if (successCount + failCount === total) {
-            this.onBatchAddComplete(successCount, failCount)
-          }
-        },
-        fail: () => {
-          // 保存到本地存储
-          const allSchedules = wx.getStorageSync('schedules') || []
-          allSchedules.push(schedule)
-          wx.setStorageSync('schedules', allSchedules)
-          
-          successCount++
-          if (successCount + failCount === total) {
-            this.onBatchAddComplete(successCount, failCount)
-          }
-        }
+        data: schedule
+      }).then(() => {
+        successCount++
+      }).catch((err) => {
+        console.error('创建日程失败:', err)
+        // 保存到本地存储
+        const allSchedules = wx.getStorageSync('schedules') || []
+        allSchedules.push(schedule)
+        wx.setStorageSync('schedules', allSchedules)
+        successCount++
       })
+    })
+
+    Promise.all(requests).then(() => {
+      this.onBatchAddComplete(successCount, failCount)
     })
   },
 
@@ -382,26 +376,25 @@ Page({
       content: '确定要删除这个日程吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/schedules/${id}`,
-            method: 'DELETE',
-            success: () => {
-              wx.showToast({
-                title: '删除成功',
-                icon: 'success'
-              })
-              this.loadSchedules()
-            },
-            fail: () => {
-              const allSchedules = wx.getStorageSync('schedules') || []
-              const filtered = allSchedules.filter(s => s.id !== id)
-              wx.setStorageSync('schedules', filtered)
-              wx.showToast({
-                title: '删除成功',
-                icon: 'success'
-              })
-              this.loadSchedules()
-            }
+          app.call({
+            path: `/api/schedules/${id}`,
+            method: 'DELETE'
+          }).then(() => {
+            wx.showToast({
+              title: '删除成功',
+              icon: 'success'
+            })
+            this.loadSchedules()
+          }).catch((err) => {
+            console.error('删除日程失败:', err)
+            const allSchedules = wx.getStorageSync('schedules') || []
+            const filtered = allSchedules.filter(s => s.id !== id)
+            wx.setStorageSync('schedules', filtered)
+            wx.showToast({
+              title: '删除成功',
+              icon: 'success'
+            })
+            this.loadSchedules()
           })
         }
       }
@@ -414,21 +407,21 @@ Page({
     const userId = app.getUserId()
     const { requestTab } = this.data
     
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?ownerId=${userId}&status=${requestTab}`,
+    app.call({
+      path: '/api/requests',
       method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          this.setData({
-            requests: res.data.data || []
-          })
-        }
-      },
-      fail: () => {
-        const allRequests = wx.getStorageSync('requests') || []
-        const filtered = allRequests.filter(r => r.status === requestTab)
-        this.setData({ requests: filtered })
+      data: { ownerId: userId, status: requestTab }
+    }).then((res) => {
+      if (res && res.success) {
+        this.setData({
+          requests: res.data || []
+        })
       }
+    }).catch((err) => {
+      console.error('加载预约请求失败:', err)
+      const allRequests = wx.getStorageSync('requests') || []
+      const filtered = allRequests.filter(r => r.status === requestTab)
+      this.setData({ requests: filtered })
     })
   },
 
@@ -446,31 +439,30 @@ Page({
       content: '确定要同意这个预约请求吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests/${id}/approve`,
-            method: 'POST',
-            success: () => {
-              wx.showToast({
-                title: '已同意',
-                icon: 'success'
-              })
-              this.loadRequests()
-              this.loadSchedules() // 刷新日程状态
-            },
-            fail: () => {
-              const allRequests = wx.getStorageSync('requests') || []
-              const index = allRequests.findIndex(r => r.id == id)
-              if (index !== -1) {
-                allRequests[index].status = 'approved'
-                wx.setStorageSync('requests', allRequests)
-              }
-              wx.showToast({
-                title: '已同意',
-                icon: 'success'
-              })
-              this.loadRequests()
-              this.loadSchedules()
+          app.call({
+            path: `/api/requests/${id}/approve`,
+            method: 'POST'
+          }).then(() => {
+            wx.showToast({
+              title: '已同意',
+              icon: 'success'
+            })
+            this.loadRequests()
+            this.loadSchedules() // 刷新日程状态
+          }).catch((err) => {
+            console.error('同意请求失败:', err)
+            const allRequests = wx.getStorageSync('requests') || []
+            const index = allRequests.findIndex(r => r.id == id)
+            if (index !== -1) {
+              allRequests[index].status = 'approved'
+              wx.setStorageSync('requests', allRequests)
             }
+            wx.showToast({
+              title: '已同意',
+              icon: 'success'
+            })
+            this.loadRequests()
+            this.loadSchedules()
           })
         }
       }
@@ -485,31 +477,30 @@ Page({
       content: '确定要驳回这个预约请求吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests/${id}/reject`,
-            method: 'POST',
-            success: () => {
-              wx.showToast({
-                title: '已驳回',
-                icon: 'success'
-              })
-              this.loadRequests()
-              this.loadSchedules() // 刷新日程状态
-            },
-            fail: () => {
-              const allRequests = wx.getStorageSync('requests') || []
-              const index = allRequests.findIndex(r => r.id == id)
-              if (index !== -1) {
-                allRequests[index].status = 'rejected'
-                wx.setStorageSync('requests', allRequests)
-              }
-              wx.showToast({
-                title: '已驳回',
-                icon: 'success'
-              })
-              this.loadRequests()
-              this.loadSchedules()
+          app.call({
+            path: `/api/requests/${id}/reject`,
+            method: 'POST'
+          }).then(() => {
+            wx.showToast({
+              title: '已驳回',
+              icon: 'success'
+            })
+            this.loadRequests()
+            this.loadSchedules() // 刷新日程状态
+          }).catch((err) => {
+            console.error('驳回请求失败:', err)
+            const allRequests = wx.getStorageSync('requests') || []
+            const index = allRequests.findIndex(r => r.id == id)
+            if (index !== -1) {
+              allRequests[index].status = 'rejected'
+              wx.setStorageSync('requests', allRequests)
             }
+            wx.showToast({
+              title: '已驳回',
+              icon: 'success'
+            })
+            this.loadRequests()
+            this.loadSchedules()
           })
         }
       }
