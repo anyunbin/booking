@@ -108,27 +108,6 @@
   line-height: 90rpx;
 }
 
-/* 密码显示/隐藏切换按钮 */
-.password-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60rpx;
-  height: 60rpx;
-  margin-left: 10rpx;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.toggle-icon {
-  font-size: 32rpx;
-  color: #999;
-  transition: color 0.2s ease;
-}
-
-.password-toggle:active .toggle-icon {
-  color: #667eea;
-}
 
 .submit-button {
   width: 100%;
