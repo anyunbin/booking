@@ -19,18 +19,17 @@ Page({
     const userId = app.getUserId()
     app.call({
       path: '/api/friends',
-      data: { userId: ${userId} },
       method: 'GET',
-      }).then((res) => {
-        if (res.data && res.success) {
-          const friends = res.data || []
-          const friendIds = friends.map(f => f.id)
-          this.setData({ myFriends: friendIds })
-        }
-      },
-      }).catch(() => {
-        // 失败不影响搜索功能
+      data: { userId: userId }
+    }).then((res) => {
+      if (res && res.success) {
+        const friends = res.data || []
+        const friendIds = friends.map(f => f.id)
+        this.setData({ myFriends: friendIds })
       }
+    }).catch((err) => {
+      console.error('加载好友列表失败:', err)
+      // 失败不影响搜索功能
     })
   },
 
@@ -76,42 +75,41 @@ Page({
       method: 'GET',
       data: {
         keyword: searchKeyword.trim()
-      },
-      }).then((res) => {
-        this.setData({ isSearching: false })
-        
-        if (res.data && res.success) {
-          const results = res.data || []
-          const { myFriends } = this.data
-          
-          // 标记是否已是好友，并处理头像文字
-          const resultsWithStatus = results.map(user => {
-            const displayName = user.nickname || user.name || '用户'
-            return {
-              ...user,
-              isFriend: myFriends.includes(user.id),
-              avatarText: displayName.charAt(0) // 首字母用于头像显示
-            }
-          })
-          
-          this.setData({ searchResults: resultsWithStatus })
-        } else {
-          this.setData({ searchResults: [] })
-          wx.showToast({
+      }
+    }).then((res) => {
+      this.setData({ isSearching: false })
+
+      if (res && res.success) {
+        const results = res.data || []
+        const { myFriends } = this.data
+
+        // 标记是否已是好友，并处理头像文字
+        const resultsWithStatus = results.map(user => {
+          const displayName = user.nickname || user.name || '用户'
+          return {
+            ...user,
+            isFriend: myFriends.includes(user.id),
+            avatarText: displayName.charAt(0) // 首字母用于头像显示
+          }
+        })
+
+        this.setData({ searchResults: resultsWithStatus })
+      } else {
+        this.setData({ searchResults: [] })
+        wx.showToast({
             title: res.data?.message || '搜索失败',
             icon: 'none'
           })
         }
-      },
-      }).catch((err) => {
-        this.setData({ isSearching: false, searchResults: [] })
-        console.error('搜索用户失败:', err)
-        wx.showToast({
-          title: '网络错误，请重试',
-          icon: 'none'
-        })
-      }
+    }).catch((err) => {
+      this.setData({ isSearching: false, searchResults: [] })
+      console.error('搜索用户失败:', err)
+      wx.showToast({
+        title: '网络错误，请重试',
+        icon: 'none'
+      })
     })
+  }
   },
 
   // 添加好友
