@@ -16,7 +16,7 @@ App({
       token: null,
       // 云托管环境配置
       cloudEnv: 'prod-0gn9dgzia67371b0', // 替换为你的云托管环境ID
-      cloudService: 'express-iayq', // 替换为你的服务名称
+      cloudService: 'express-iayq-009', // 替换为你的服务名称
       // 备用：公网访问地址（如果云调用失败）
       apiBaseUrl: 'https://express-iayq-202839-6-1388611962.sh.run.tcloudbase.com/api'
     }
