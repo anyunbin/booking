@@ -97,10 +97,10 @@ Page({
       } else {
         this.setData({ searchResults: [] })
         wx.showToast({
-            title: res.data?.message || '搜索失败',
-            icon: 'none'
-          })
-        }
+          title: res?.message || '搜索失败',
+          icon: 'none'
+        })
+      }
     }).catch((err) => {
       this.setData({ isSearching: false, searchResults: [] })
       console.error('搜索用户失败:', err)
@@ -109,7 +109,6 @@ Page({
         icon: 'none'
       })
     })
-  }
   },
 
   // 添加好友
@@ -140,47 +139,45 @@ Page({
       data: { 
         friendId: friend.id, 
         userId: userId 
-      },
-      }).then((res) => {
-        wx.hideLoading()
-        
-        if (res.data && res.success) {
-          wx.showToast({
-            title: '添加成功',
-            icon: 'success'
-          })
-          
-          // 更新搜索结果中的状态
-          const searchResults = this.data.searchResults.map(item => {
-            if (item.id === friend.id) {
-              return { ...item, isFriend: true }
-            }
-            return item
-          })
-          this.setData({ searchResults })
-          
-          // 更新好友列表
-          this.loadMyFriends()
-          
-          // 延迟返回
-          setTimeout(() => {
-            wx.navigateBack()
-          }, 1500)
-        } else {
-          wx.showToast({
-            title: res.data?.message || '添加失败',
-            icon: 'none'
-          })
-        }
-      },
-      }).catch((err) => {
-        wx.hideLoading()
-        console.error('添加好友失败:', err)
+      }
+    }).then((res) => {
+      wx.hideLoading()
+
+      if (res && res.success) {
         wx.showToast({
-          title: '网络错误，请重试',
+          title: '添加成功',
+          icon: 'success'
+        })
+
+        // 更新搜索结果中的状态
+        const searchResults = this.data.searchResults.map(item => {
+          if (item.id === friend.id) {
+            return { ...item, isFriend: true }
+          }
+          return item
+        })
+        this.setData({ searchResults })
+
+        // 更新好友列表
+        this.loadMyFriends()
+
+        // 延迟返回
+        setTimeout(() => {
+          wx.navigateBack()
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: res?.message || '添加失败',
           icon: 'none'
         })
       }
+    }).catch((err) => {
+      wx.hideLoading()
+      console.error('添加好友失败:', err)
+      wx.showToast({
+        title: '网络错误，请重试',
+        icon: 'none'
+      })
     })
   }
 })
