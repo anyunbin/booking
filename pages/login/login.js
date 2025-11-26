@@ -83,14 +83,19 @@ Page({
 
     this.setData({ isSubmitting: true })
 
+    const loginUrl = `${app.globalData.apiBaseUrl}/auth/login`
+    console.log('登录请求 URL:', loginUrl)
+    console.log('API Base URL:', app.globalData.apiBaseUrl)
+
     wx.request({
-      url: `${app.globalData.apiBaseUrl}/auth/login`,
+      url: loginUrl,
       method: 'POST',
       data: {
         username: loginUsername,
         password: loginPassword
       },
       success: (res) => {
+        console.log('登录响应:', res)
         if (res.data && res.data.success) {
           const { userInfo, token } = res.data.data
           
@@ -125,6 +130,8 @@ Page({
       },
       fail: (err) => {
         console.error('登录请求失败:', err)
+        console.error('请求 URL:', loginUrl)
+        console.error('错误详情:', JSON.stringify(err))
         wx.showToast({
           title: '网络错误，请检查连接',
           icon: 'none'
