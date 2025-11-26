@@ -167,14 +167,30 @@ App({
   },
 
   /**
-   * 智能调用方法：优先使用云调用，失败时自动降级到公网访问
+   * 智能调用方法：根据环境选择调用方式
+   * 开发版/预览版：优先使用云调用，失败时降级到公网
+   * 体验版/正式版：直接使用公网访问（云调用在体验版可能有权限限制）
    * @param {Object} options - 请求配置
    * @returns {Promise} 返回响应数据
    */
   async call(options = {}) {
     const that = this
+
+    // 获取当前环境信息
+    const accountInfo = wx.getAccountInfoSync()
+    const envVersion = accountInfo.miniProgram.envVersion // develop/trial/release
+
+    console.log('当前环境:', envVersion)
+
+    // 体验版和正式版使用公网访问（云调用可能有权限限制）
+    if (envVersion === 'trial' || envVersion === 'release') {
+      console.log('体验版/正式版：使用公网访问')
+      return await that.callPublic(options)
+    }
+
+    // 开发版和预览版优先使用云调用
     try {
-      // 优先使用云调用
+      console.log('开发版/预览版：优先使用云调用')
       return await that.callCloud(options)
     } catch (e) {
       console.warn('云调用失败，自动降级到公网访问:', e.message)
