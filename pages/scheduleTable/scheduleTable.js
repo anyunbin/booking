@@ -224,73 +224,73 @@ Page({
     })
 
     // 加载自己的日程
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules?userId=${userId}`,
+    app.call({
+      path: '/api/schedules',
       method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          res.data.data.forEach(schedule => {
-            const startTime = schedule.start_time || schedule.startTime
-            const endTime = schedule.end_time || schedule.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            const duration = endMinutes - startMinutes
-            const multiplier = Math.round(duration / minTimeUnitMinutes) // 跨几个时间单元
-            
-            // 标记所有被这个日程覆盖的单元格
-            // 找到第一个被覆盖的时间槽（向下取整到30分钟整数倍）
-            const firstSlotMinutes = Math.floor(startMinutes / minTimeUnitMinutes) * minTimeUnitMinutes
-            let currentMinutes = firstSlotMinutes
-            let cellIndex = 0
-            let isFirstCellFound = false
-            
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${schedule.date}_${currentTime}`
-              
-              if (tableData[key]) {
-                if (!isFirstCellFound) {
-                  // 第一个单元格显示完整信息
-                  tableData[key] = {
-                    status: 'mySchedule',
-                    guestName: '',
-                    scheduleId: schedule.id,
-                    requestId: null,
-                    ownerId: schedule.user_id || schedule.userId,
-                    endTime: endTime,
-                    startTime: startTime,
-                    isFirstCell: true,
-                    spanCount: multiplier
-                  }
-                  isFirstCellFound = true
-                } else {
-                  // 后续单元格标记为延续
-                  tableData[key] = {
-                    status: 'mySchedule',
-                    guestName: '',
-                    scheduleId: schedule.id,
-                    requestId: null,
-                    ownerId: schedule.user_id || schedule.userId,
-                    endTime: endTime,
-                    startTime: startTime,
-                    isContinuation: true,
-                    spanCount: multiplier
-                  }
+      data: { userId: userId }
+    }).then((res) => {
+      if (res && res.success) {
+        res.data.forEach(schedule => {
+          const startTime = schedule.start_time || schedule.startTime
+          const endTime = schedule.end_time || schedule.endTime
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
+          const duration = endMinutes - startMinutes
+          const multiplier = Math.round(duration / minTimeUnitMinutes) // 跨几个时间单元
+
+          // 标记所有被这个日程覆盖的单元格
+          // 找到第一个被覆盖的时间槽（向下取整到30分钟整数倍）
+          const firstSlotMinutes = Math.floor(startMinutes / minTimeUnitMinutes) * minTimeUnitMinutes
+          let currentMinutes = firstSlotMinutes
+          let cellIndex = 0
+          let isFirstCellFound = false
+
+          while (currentMinutes < endMinutes) {
+            const currentTime = this.minutesToTime(currentMinutes)
+            const key = `${schedule.date}_${currentTime}`
+
+            if (tableData[key]) {
+              if (!isFirstCellFound) {
+                // 第一个单元格显示完整信息
+                tableData[key] = {
+                  status: 'mySchedule',
+                  guestName: '',
+                  scheduleId: schedule.id,
+                  requestId: null,
+                  ownerId: schedule.user_id || schedule.userId,
+                  endTime: endTime,
+                  startTime: startTime,
+                  isFirstCell: true,
+                  spanCount: multiplier
+                }
+                isFirstCellFound = true
+              } else {
+                // 后续单元格标记为延续
+                tableData[key] = {
+                  status: 'mySchedule',
+                  guestName: '',
+                  scheduleId: schedule.id,
+                  requestId: null,
+                  ownerId: schedule.user_id || schedule.userId,
+                  endTime: endTime,
+                  startTime: startTime,
+                  isContinuation: true,
+                  spanCount: multiplier
                 }
               }
-              
-              currentMinutes += minTimeUnitMinutes
-              cellIndex++
             }
-          })
-        }
-        this.setData({ tableData })
-        this.loadBookingData()
-      },
-      fail: () => {
-        this.setData({ tableData })
-        this.loadBookingData()
+
+            currentMinutes += minTimeUnitMinutes
+            cellIndex++
+          }
+        })
       }
+      this.setData({ tableData })
+      this.loadBookingData()
+    }).catch((err) => {
+      console.error('加载日程失败:', err)
+      this.setData({ tableData })
+      this.loadBookingData()
     })
   },
 
@@ -300,70 +300,71 @@ Page({
     const { tableData } = this.data
 
     // 加载待审批的预约请求
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests?ownerId=${userId}`,
+    app.call({
+      path: '/api/requests',
       method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          const newTableData = { ...tableData }
-          
-          // 待审批的请求
-          res.data.data.filter(r => r.status === 'pending').forEach(request => {
-            const startTime = request.start_time || request.startTime
-            const endTime = request.end_time || request.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            const { minTimeUnitMinutes } = this.data
-            
-            // 更新所有被这个请求覆盖的单元格（包括延续单元格）
-            let currentMinutes = startMinutes
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${request.date}_${currentTime}`
-              if (newTableData[key] && (newTableData[key].status === 'mySchedule' || newTableData[key].status === 'available')) {
-                newTableData[key] = {
-                  ...newTableData[key],
-                  status: 'pending',
-                  guestName: request.guest_name || request.guestName,
-                  requestId: request.id,
-                  note: request.note || ''
-                }
-              }
-              currentMinutes += minTimeUnitMinutes
-            }
-          })
+      data: { ownerId: userId }
+    }).then((res) => {
+      if (res && res.success) {
+        const newTableData = { ...tableData }
 
-          // 已预约的请求（已同意）
-          res.data.data.filter(r => r.status === 'approved').forEach(request => {
-            const startTime = request.start_time || request.startTime
-            const endTime = request.end_time || request.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            const { minTimeUnitMinutes } = this.data
-            
-            // 更新所有被这个预约覆盖的单元格（包括延续单元格）
-            let currentMinutes = startMinutes
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${request.date}_${currentTime}`
-              if (newTableData[key] && newTableData[key].status === 'mySchedule') {
-                newTableData[key] = {
-                  ...newTableData[key],
-                  status: 'booked',
-                  guestName: request.guest_name || request.guestName,
-                  requestId: request.id,
-                  note: request.note || ''
-                }
-              }
-              currentMinutes += minTimeUnitMinutes
-            }
-          })
+        // 待审批的请求
+        res.data.filter(r => r.status === 'pending').forEach(request => {
+          const startTime = request.start_time || request.startTime
+          const endTime = request.end_time || request.endTime
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
+          const { minTimeUnitMinutes } = this.data
 
-          this.setData({ tableData: newTableData })
-          this.updateDateScheduleCounts()
-        }
-      },
-      fail: () => {}
+          // 更新所有被这个请求覆盖的单元格（包括延续单元格）
+          let currentMinutes = startMinutes
+          while (currentMinutes < endMinutes) {
+            const currentTime = this.minutesToTime(currentMinutes)
+            const key = `${request.date}_${currentTime}`
+            if (newTableData[key] && (newTableData[key].status === 'mySchedule' || newTableData[key].status === 'available')) {
+              newTableData[key] = {
+                ...newTableData[key],
+                status: 'pending',
+                guestName: request.guest_name || request.guestName,
+                requestId: request.id,
+                note: request.note || ''
+              }
+            }
+            currentMinutes += minTimeUnitMinutes
+          }
+        })
+
+        // 已预约的请求（已同意）
+        res.data.filter(r => r.status === 'approved').forEach(request => {
+          const startTime = request.start_time || request.startTime
+          const endTime = request.end_time || request.endTime
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
+          const { minTimeUnitMinutes } = this.data
+
+          // 更新所有被这个预约覆盖的单元格（包括延续单元格）
+          let currentMinutes = startMinutes
+          while (currentMinutes < endMinutes) {
+            const currentTime = this.minutesToTime(currentMinutes)
+            const key = `${request.date}_${currentTime}`
+            if (newTableData[key] && newTableData[key].status === 'mySchedule') {
+              newTableData[key] = {
+                ...newTableData[key],
+                status: 'booked',
+                guestName: request.guest_name || request.guestName,
+                requestId: request.id,
+                note: request.note || ''
+              }
+            }
+            currentMinutes += minTimeUnitMinutes
+          }
+        })
+
+        this.setData({ tableData: newTableData })
+        this.updateDateScheduleCounts()
+      }
+    }).catch((err) => {
+      console.error('加载预约数据失败:', err)
     })
   },
 
@@ -576,37 +577,27 @@ Page({
 
     // 使用 Promise.all 来确保所有请求完成后再处理结果
     const requests = preview.map((slot, index) => {
-      return new Promise((resolve) => {
-        const scheduleData = {
+      return app.call({
+        path: '/api/schedules',
+        method: 'POST',
+        data: {
           date: selectedQuickDate,
           startTime: slot.startTime,
           endTime: slot.endTime,
           userId: userId,
           isPublic: globalIsPublic === true || globalIsPublic === 'true' || globalIsPublic === 1
         }
-
-        console.log(`创建日程 ${index + 1}/${total}:`, scheduleData)
-
-        wx.request({
-          url: `${app.globalData.apiBaseUrl}/schedules`,
-          method: 'POST',
-          data: scheduleData,
-          success: (res) => {
-            if (res.data && res.data.success) {
-              successCount++
-              console.log(`日程 ${index + 1} 创建成功:`, res.data.data)
-            } else {
-              failCount++
-              console.error(`日程 ${index + 1} 创建失败:`, res.data)
-            }
-            resolve()
-          },
-          fail: (err) => {
-            failCount++
-            console.error(`日程 ${index + 1} 请求失败:`, err)
-            resolve()
-          }
-        })
+      }).then((res) => {
+        if (res && res.success) {
+          successCount++
+          console.log(`日程 ${index + 1} 创建成功:`, res.data)
+        } else {
+          failCount++
+          console.error(`日程 ${index + 1} 创建失败:`, res)
+        }
+      }).catch((err) => {
+        failCount++
+        console.error(`日程 ${index + 1} 请求失败:`, err)
       })
     })
 
@@ -699,47 +690,48 @@ Page({
     
     // 如果有日程ID但没有结束时间，需要获取
     if (cell.scheduleId && !scheduleEndTime) {
-      wx.request({
-        url: `${app.globalData.apiBaseUrl}/schedules/${cell.scheduleId}`,
-        method: 'GET',
-        success: (res) => {
-          if (res.data.success) {
-            const schedule = res.data.data
-            const endTime = schedule.end_time || schedule.endTime
-            const startTime = schedule.start_time || schedule.startTime || time
-            
-            // 计算时长信息
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            const duration = endMinutes - startMinutes
-            const durationMultiplier = Math.round(duration / minTimeUnitMinutes)
-            let durationText = ''
-            
-            if (durationMultiplier === 1) {
-              durationText = '30分钟'
-            } else if (durationMultiplier === 2) {
-              durationText = '1小时'
-            } else if (durationMultiplier === 3) {
-              durationText = '1.5小时'
+      app.call({
+        path: `/api/schedules/${cell.scheduleId}`,
+        method: 'GET'
+      }).then((res) => {
+        if (res && res.success) {
+          const schedule = res.data
+          const endTime = schedule.end_time || schedule.endTime
+          const startTime = schedule.start_time || schedule.startTime || time
+
+          // 计算时长信息
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
+          const duration = endMinutes - startMinutes
+          const durationMultiplier = Math.round(duration / minTimeUnitMinutes)
+          let durationText = ''
+
+          if (durationMultiplier === 1) {
+            durationText = '30分钟'
+          } else if (durationMultiplier === 2) {
+            durationText = '1小时'
+          } else if (durationMultiplier === 3) {
+            durationText = '1.5小时'
+          } else {
+            const hours = Math.floor(duration / 60)
+            const mins = duration % 60
+            if (hours > 0 && mins > 0) {
+              durationText = `${hours}小时${mins}分钟`
+            } else if (hours > 0) {
+              durationText = `${hours}小时`
             } else {
-              const hours = Math.floor(duration / 60)
-              const mins = duration % 60
-              if (hours > 0 && mins > 0) {
-                durationText = `${hours}小时${mins}分钟`
-              } else if (hours > 0) {
-                durationText = `${hours}小时`
-              } else {
-                durationText = `${mins}分钟`
-              }
+              durationText = `${mins}分钟`
             }
-            
-            this.setData({
-              scheduleEndTime: endTime,
-              scheduleDurationMultiplier: durationMultiplier,
-              scheduleDurationText: durationText
-            })
           }
+
+          this.setData({
+            scheduleEndTime: endTime,
+            scheduleDurationMultiplier: durationMultiplier,
+            scheduleDurationText: durationText
+          })
         }
+      }).catch((err) => {
+        console.error('获取日程详情失败:', err)
       })
     }
 
@@ -871,7 +863,7 @@ Page({
       return timeA.localeCompare(timeB)
     })
 
-    sortedCells.forEach((cellKey) => {
+    const requests = sortedCells.map((cellKey) => {
       const [date, time] = cellKey.split('_')
       const startMinutes = this.timeToMinutes(time)
       const endMinutes = startMinutes + unitDuration
@@ -885,33 +877,24 @@ Page({
         isPublic: globalIsPublic === true || globalIsPublic === 'true' || globalIsPublic === 1
       }
 
-      wx.request({
-        url: `${app.globalData.apiBaseUrl}/schedules`,
+      return app.call({
+        path: '/api/schedules',
         method: 'POST',
-        data: scheduleData,
-        success: () => {
-          successCount++
-          if (successCount === total) {
-            wx.showToast({
-              title: `成功设置${successCount}个日程`,
-              icon: 'success'
-            })
-            this.clearSelection()
-            this.loadTableData()
-          }
-        },
-        fail: () => {
-          successCount++
-          if (successCount === total) {
-            wx.showToast({
-              title: `成功设置${successCount}个日程`,
-              icon: 'success'
-            })
-            this.clearSelection()
-            this.loadTableData()
-          }
-        }
+        data: scheduleData
+      }).then(() => {
+        successCount++
+      }).catch((err) => {
+        console.error('创建日程失败:', err)
       })
+    })
+
+    Promise.all(requests).then(() => {
+      wx.showToast({
+        title: `成功设置${successCount}个日程`,
+        icon: 'success'
+      })
+      this.clearSelection()
+      this.loadTableData()
     })
   },
 
@@ -961,20 +944,17 @@ Page({
       isPublic: globalIsPublic === true || globalIsPublic === 'true' || globalIsPublic === 1
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules`,
+    app.call({
+      path: '/api/schedules',
       method: 'POST',
-      data: scheduleData,
-      success: () => {
-        wx.showToast({ title: '设置成功', icon: 'success' })
-        this.closeCellModal()
-        this.loadTableData()
-      },
-      fail: () => {
-        wx.showToast({ title: '设置成功', icon: 'success' })
-        this.closeCellModal()
-        this.loadTableData()
-      }
+      data: scheduleData
+    }).then(() => {
+      wx.showToast({ title: '设置成功', icon: 'success' })
+      this.closeCellModal()
+      this.loadTableData()
+    }).catch((err) => {
+      console.error('设置日程失败:', err)
+      wx.showToast({ title: '设置失败，请重试', icon: 'none' })
     })
   },
 
@@ -987,19 +967,16 @@ Page({
       content: '确定要删除这个日程吗？',
       success: (res) => {
         if (res.confirm) {
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/schedules/${selectedScheduleId}`,
-            method: 'DELETE',
-            success: () => {
-              wx.showToast({ title: '删除成功', icon: 'success' })
-              this.closeCellModal()
-              this.loadTableData()
-            },
-            fail: () => {
-              wx.showToast({ title: '删除成功', icon: 'success' })
-              this.closeCellModal()
-              this.loadTableData()
-            }
+          app.call({
+            path: `/api/schedules/${selectedScheduleId}`,
+            method: 'DELETE'
+          }).then(() => {
+            wx.showToast({ title: '删除成功', icon: 'success' })
+            this.closeCellModal()
+            this.loadTableData()
+          }).catch((err) => {
+            console.error('删除日程失败:', err)
+            wx.showToast({ title: '删除失败，请重试', icon: 'none' })
           })
         }
       }
@@ -1025,81 +1002,77 @@ Page({
       return
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules/${cell.scheduleId}`,
-      method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          const schedule = res.data.data
-          // ownerId应该是日程的所有者
-          const ownerId = schedule.user_id || schedule.userId
-          const scheduleStartTime = schedule.start_time || schedule.startTime
-          const scheduleEndTime = schedule.end_time || schedule.endTime
-          
-          if (!ownerId) {
-            wx.showToast({
-              title: '获取日程信息失败',
-              icon: 'none'
-            })
-            return
-          }
+    app.call({
+      path: `/api/schedules/${cell.scheduleId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res && res.success) {
+        const schedule = res.data
+        // ownerId应该是日程的所有者
+        const ownerId = schedule.user_id || schedule.userId
+        const scheduleStartTime = schedule.start_time || schedule.startTime
+        const scheduleEndTime = schedule.end_time || schedule.endTime
 
-          // 验证预约时间必须等于整个日程时间
-          if (selectedTime !== scheduleStartTime) {
-            wx.showToast({
-              title: '只能预约整个日程',
-              icon: 'none'
-            })
-            return
-          }
-
-          const bookingData = {
-            scheduleId: cell.scheduleId,
-            ownerId: ownerId,
-            date: selectedDate,
-            startTime: scheduleStartTime, // 使用日程的开始时间
-            endTime: scheduleEndTime, // 使用日程的结束时间
-            note: bookingNote || ''
-          }
-
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests`,
-            method: 'POST',
-            data: bookingData,
-            success: (reqRes) => {
-              if (reqRes.data && reqRes.data.success) {
-                wx.showToast({ title: '预约成功', icon: 'success' })
-                this.closeCellModal()
-                this.loadTableData()
-              } else {
-                wx.showToast({
-                  title: reqRes.data?.message || '预约失败',
-                  icon: 'none'
-                })
-              }
-            },
-            fail: (err) => {
-              console.error('预约请求失败:', err)
-              wx.showToast({
-                title: '预约失败，请重试',
-                icon: 'none'
-              })
-            }
-          })
-        } else {
+        if (!ownerId) {
           wx.showToast({
             title: '获取日程信息失败',
             icon: 'none'
           })
+          return
         }
-      },
-      fail: (err) => {
-        console.error('获取日程失败:', err)
+
+        // 验证预约时间必须等于整个日程时间
+        if (selectedTime !== scheduleStartTime) {
+          wx.showToast({
+            title: '只能预约整个日程',
+            icon: 'none'
+          })
+          return
+        }
+
+        const bookingData = {
+          scheduleId: cell.scheduleId,
+          ownerId: ownerId,
+          date: selectedDate,
+          startTime: scheduleStartTime, // 使用日程的开始时间
+          endTime: scheduleEndTime, // 使用日程的结束时间
+          note: bookingNote || ''
+        }
+
+        app.call({
+          path: '/api/requests',
+          method: 'POST',
+          data: bookingData
+        }).then((reqRes) => {
+          if (reqRes && reqRes.success) {
+            wx.showToast({ title: '预约成功', icon: 'success' })
+            this.closeCellModal()
+            this.loadTableData()
+          } else {
+            wx.showToast({
+              title: reqRes?.message || '预约失败',
+              icon: 'none'
+            })
+          }
+        }).catch((err) => {
+          console.error('预约请求失败:', err)
+          wx.showToast({
+            title: '预约失败，请重试',
+            icon: 'none'
+          })
+        })
+      } else {
         wx.showToast({
           title: '获取日程信息失败',
           icon: 'none'
         })
       }
+    }).catch((err) => {
+      console.error('获取日程失败:', err)
+      wx.showToast({
+        title: '获取日程信息失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -1123,94 +1096,88 @@ Page({
       return
     }
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/schedules/${selectedScheduleId}`,
-      method: 'GET',
-      success: (res) => {
-        if (res.data.success) {
-          const schedule = res.data.data
-          // ownerId应该是日程的所有者（user_id），而不是当前用户
-          const ownerId = schedule.user_id || schedule.userId
-          const scheduleStartTime = schedule.start_time || schedule.startTime
-          const scheduleEndTime = schedule.end_time || schedule.endTime
-          
-          if (!ownerId) {
-            wx.showToast({
-              title: '获取日程信息失败',
-              icon: 'none'
-            })
-            return
-          }
-          
-          // 验证预约时间必须等于整个日程时间
-          if (selectedTime !== scheduleStartTime) {
-            wx.showToast({
-              title: '只能预约整个日程',
-              icon: 'none'
-            })
-            return
-          }
-          
-          wx.request({
-            url: `${app.globalData.apiBaseUrl}/requests`,
-            method: 'POST',
-            data: {
-              scheduleId: selectedScheduleId,
-              ownerId: ownerId,
-              date: selectedDate,
-              startTime: scheduleStartTime, // 使用日程的开始时间
-              endTime: scheduleEndTime, // 使用日程的结束时间
-              note: bookingNote || '',
-              guestName: bookingGuestName,
-              guestId: 'manual_' + Date.now()
-            },
-            success: (reqRes) => {
-              if (reqRes.data.success) {
-                // 自动同意预约请求
-                wx.request({
-                  url: `${app.globalData.apiBaseUrl}/requests/${reqRes.data.data.id}/approve`,
-                  method: 'POST',
-                  success: () => {
-                    wx.showToast({ title: '预约成功', icon: 'success' })
-                    this.closeCellModal()
-                    this.loadTableData()
-                  },
-                  fail: (err) => {
-                    console.error('同意预约失败:', err)
-                    wx.showToast({ title: '预约成功', icon: 'success' })
-                    this.closeCellModal()
-                    this.loadTableData()
-                  }
-                })
-              } else {
-                wx.showToast({
-                  title: reqRes.data.message || '预约失败',
-                  icon: 'none'
-                })
-              }
-            },
-            fail: (err) => {
-              console.error('创建预约请求失败:', err)
-              wx.showToast({
-                title: '预约失败，请重试',
-                icon: 'none'
-              })
-            }
-          })
-        } else {
+    app.call({
+      path: `/api/schedules/${selectedScheduleId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res && res.success) {
+        const schedule = res.data
+        // ownerId应该是日程的所有者（user_id），而不是当前用户
+        const ownerId = schedule.user_id || schedule.userId
+        const scheduleStartTime = schedule.start_time || schedule.startTime
+        const scheduleEndTime = schedule.end_time || schedule.endTime
+
+        if (!ownerId) {
           wx.showToast({
             title: '获取日程信息失败',
             icon: 'none'
           })
+          return
         }
-      },
-      fail: (err) => {
-        console.error('获取日程失败:', err)
+
+        // 验证预约时间必须等于整个日程时间
+        if (selectedTime !== scheduleStartTime) {
+          wx.showToast({
+            title: '只能预约整个日程',
+            icon: 'none'
+          })
+          return
+        }
+
+        app.call({
+          path: '/api/requests',
+          method: 'POST',
+          data: {
+            scheduleId: selectedScheduleId,
+            ownerId: ownerId,
+            date: selectedDate,
+            startTime: scheduleStartTime, // 使用日程的开始时间
+            endTime: scheduleEndTime, // 使用日程的结束时间
+            note: bookingNote || '',
+            guestName: bookingGuestName,
+            guestId: 'manual_' + Date.now()
+          }
+        }).then((reqRes) => {
+          if (reqRes && reqRes.success) {
+            // 自动同意预约请求
+            app.call({
+              path: `/api/requests/${reqRes.data.id}/approve`,
+              method: 'POST'
+            }).then(() => {
+              wx.showToast({ title: '预约成功', icon: 'success' })
+              this.closeCellModal()
+              this.loadTableData()
+            }).catch((err) => {
+              console.error('同意预约失败:', err)
+              wx.showToast({ title: '预约成功', icon: 'success' })
+              this.closeCellModal()
+              this.loadTableData()
+            })
+          } else {
+            wx.showToast({
+              title: reqRes?.message || '预约失败',
+              icon: 'none'
+            })
+          }
+        }).catch((err) => {
+          console.error('创建预约请求失败:', err)
+          wx.showToast({
+            title: '预约失败，请重试',
+            icon: 'none'
+          })
+        })
+      } else {
         wx.showToast({
           title: '获取日程信息失败',
           icon: 'none'
         })
       }
+    }).catch((err) => {
+      console.error('获取日程失败:', err)
+      wx.showToast({
+        title: '获取日程信息失败',
+        icon: 'none'
+      })
     })
   },
 
@@ -1226,19 +1193,16 @@ Page({
     const { selectedRequestId } = this.data
     if (!selectedRequestId) return
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests/${selectedRequestId}/approve`,
-      method: 'POST',
-      success: () => {
-        wx.showToast({ title: '已同意', icon: 'success' })
-        this.closeCellModal()
-        this.loadTableData()
-      },
-      fail: () => {
-        wx.showToast({ title: '已同意', icon: 'success' })
-        this.closeCellModal()
-        this.loadTableData()
-      }
+    app.call({
+      path: `/api/requests/${selectedRequestId}/approve`,
+      method: 'POST'
+    }).then(() => {
+      wx.showToast({ title: '已同意', icon: 'success' })
+      this.closeCellModal()
+      this.loadTableData()
+    }).catch((err) => {
+      console.error('同意请求失败:', err)
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' })
     })
   },
 
@@ -1246,19 +1210,16 @@ Page({
     const { selectedRequestId } = this.data
     if (!selectedRequestId) return
 
-    wx.request({
-      url: `${app.globalData.apiBaseUrl}/requests/${selectedRequestId}/reject`,
-      method: 'POST',
-      success: () => {
-        wx.showToast({ title: '已驳回', icon: 'success' })
-        this.closeCellModal()
-        this.loadTableData()
-      },
-      fail: () => {
-        wx.showToast({ title: '已驳回', icon: 'success' })
-        this.closeCellModal()
-        this.loadTableData()
-      }
+    app.call({
+      path: `/api/requests/${selectedRequestId}/reject`,
+      method: 'POST'
+    }).then(() => {
+      wx.showToast({ title: '已驳回', icon: 'success' })
+      this.closeCellModal()
+      this.loadTableData()
+    }).catch((err) => {
+      console.error('驳回请求失败:', err)
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' })
     })
   }
 })
