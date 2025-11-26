@@ -18,19 +18,18 @@ Page({
     const userId = app.getUserId()
     app.call({
       path: '/api/friends',
-      data: { userId: ${userId} },
       method: 'GET',
-      }).then((res) => {
-        if (res.success) {
-          this.setData({
-            friends: res.data || []
-          })
-        }
-      },
-      }).catch(() => {
-        const friends = wx.getStorageSync('friends') || []
-        this.setData({ friends })
+      data: { userId: userId }
+    }).then((res) => {
+      if (res && res.success) {
+        this.setData({
+          friends: res.data || []
+        })
       }
+    }).catch((err) => {
+      console.error('加载好友列表失败:', err)
+      const friends = wx.getStorageSync('friends') || []
+      this.setData({ friends })
     })
   },
 
