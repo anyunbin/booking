@@ -22,22 +22,20 @@ Page({
     const { scheduleId } = this.data
     
     app.call({
-      path: '/api/schedules/${scheduleId}',
-      method: 'GET',
-      }).then((res) => {
-        if (res.success) {
-          this.setData({
-            schedule: res.data
-          })
-        }
-      },
-      }).catch(() => {
-        // 从本地存储加载
-        const allSchedules = wx.getStorageSync('schedules') || []
-        const schedule = allSchedules.find(s => s.id == scheduleId)
-        if (schedule) {
-          this.setData({ schedule })
-        }
+      path: `/api/schedules/${scheduleId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res && res.success) {
+        this.setData({
+          schedule: res.data
+        })
+      }
+    }).catch(() => {
+      // 从本地存储加载
+      const allSchedules = wx.getStorageSync('schedules') || []
+      const schedule = allSchedules.find(s => s.id == scheduleId)
+      if (schedule) {
+        this.setData({ schedule })
       }
     })
   },
@@ -75,46 +73,10 @@ Page({
     app.call({
       path: '/api/requests',
       method: 'POST',
-      data: bookingData,
-      }).then((res) => {
-        wx.hideLoading()
-        if (res.success) {
-          wx.showToast({
-            title: '预约请求已提交',
-            icon: 'success'
-          })
-          setTimeout(() => {
-            wx.navigateBack()
-          }, 1500)
-        } else {
-          wx.showToast({
-            title: res.message || '提交失败',
-            icon: 'none'
-          })
-        }
-      },
-      }).catch(() => {
-        wx.hideLoading()
-        // 保存到本地存储
-        const requests = wx.getStorageSync('requests') || []
-        const newRequest = {
-          id: Date.now(),
-          ...bookingData,
-          guestName: '我',
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        }
-        requests.push(newRequest)
-        wx.setStorageSync('requests', requests)
-        
-        // 更新日程状态
-        const allSchedules = wx.getStorageSync('schedules') || []
-        const index = allSchedules.findIndex(s => s.id == scheduleId)
-        if (index !== -1) {
-          allSchedules[index].status = 'pending'
-          wx.setStorageSync('schedules', allSchedules)
-        }
-        
+      data: bookingData
+    }).then((res) => {
+      wx.hideLoading()
+      if (res && res.success) {
         wx.showToast({
           title: '预约请求已提交',
           icon: 'success'
@@ -122,7 +84,41 @@ Page({
         setTimeout(() => {
           wx.navigateBack()
         }, 1500)
+      } else {
+        wx.showToast({
+          title: res?.message || '提交失败',
+          icon: 'none'
+        })
       }
+    }).catch(() => {
+      wx.hideLoading()
+      // 保存到本地存储
+      const requests = wx.getStorageSync('requests') || []
+      const newRequest = {
+        id: Date.now(),
+        ...bookingData,
+        guestName: '我',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+      requests.push(newRequest)
+      wx.setStorageSync('requests', requests)
+
+      // 更新日程状态
+      const allSchedules = wx.getStorageSync('schedules') || []
+      const index = allSchedules.findIndex(s => s.id == scheduleId)
+      if (index !== -1) {
+        allSchedules[index].status = 'pending'
+        wx.setStorageSync('schedules', allSchedules)
+      }
+
+      wx.showToast({
+        title: '预约请求已提交',
+        icon: 'success'
+      })
+      setTimeout(() => {
+        wx.navigateBack()
+      }, 1500)
     })
   }
 })
