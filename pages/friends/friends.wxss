@@ -1,107 +1,424 @@
-/* pages/friends/friends.wxss */
+/* pages/friends/friends.wxss - 现代化设计 */
+
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
-  padding: 40rpx;
+  background: #f9fafb;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
+/* 头部 */
 .header {
-  margin-bottom: 40rpx;
+  padding: 30rpx 20rpx 20rpx 20rpx;
+  background: #ffffff;
+  border-bottom: 1rpx solid #e5e7eb;
 }
 
 .title {
   font-size: 40rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10rpx;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8rpx;
 }
 
 .subtitle {
   font-size: 24rpx;
-  color: #999;
+  color: #6b7280;
 }
 
-.btn-add-friend {
-  width: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* 统计提醒 */
+.stats-reminder {
+  display: flex;
+  gap: 12rpx;
+  margin: 20rpx;
+  padding: 0;
+}
+
+.reminder-item {
+  flex: 1;
+  padding: 16rpx;
+  border-radius: 16rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.reminder-item:active {
+  transform: translateY(-2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.reminder-item.approved {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #fff;
+}
+
+.reminder-item.pending {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #fff;
+}
+
+.reminder-item.total {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+}
+
+.reminder-label {
+  font-size: 20rpx;
+  opacity: 0.9;
+  margin-bottom: 6rpx;
+  font-weight: 500;
+}
+
+.reminder-count {
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 预约详情 */
+.booking-details {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin: 0 20rpx 20rpx 20rpx;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 40rpx);
+  box-sizing: border-box;
+}
+
+.booking-section {
+  margin-bottom: 0;
+}
+
+.booking-section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 2rpx solid #10b981;
+}
+
+.section-title.pending {
+  border-bottom-color: #f59e0b;
+}
+
+.booking-item {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  margin-bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.booking-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.booking-date {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.booking-time {
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.booking-owner-badge {
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2rpx 8rpx rgba(16, 185, 129, 0.2);
+  transition: all 0.3s ease;
+}
+
+.booking-owner-badge:active {
+  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.3);
+  transform: scale(0.98);
+}
+
+.booking-owner-badge.pending {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 2rpx 8rpx rgba(245, 158, 11, 0.2);
+}
+
+.booking-owner-badge.pending:active {
+  box-shadow: 0 4rpx 12rpx rgba(245, 158, 11, 0.3);
+}
+
+.no-booking {
+  text-align: center;
+  padding: 20rpx;
+  color: #9ca3af;
+}
+
+.no-booking-text {
+  font-size: 24rpx;
+}
+
+/* 搜索框 */
+.search-container {
+  padding: 16rpx 20rpx;
+  background: #ffffff;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
   border-radius: 20rpx;
-  font-size: 32rpx;
-  padding: 30rpx;
-  margin-bottom: 40rpx;
+  padding: 12rpx 16rpx;
+  gap: 8rpx;
+}
+
+.search-icon {
+  font-size: 24rpx;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 28rpx;
+  color: #1f2937;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* 分类筛选 */
+.category-container {
+  padding: 0 20rpx 16rpx 20rpx;
+  background: #ffffff;
+}
+
+.category-list {
+  display: flex;
+  gap: 12rpx;
+  overflow-x: auto;
+  padding-bottom: 4rpx;
+}
+
+.category-list::-webkit-scrollbar {
+  display: none;
+}
+
+.category-tag {
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #e5e7eb;
+  background: #ffffff;
+  color: #6b7280;
+  font-size: 26rpx;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.category-tag.active {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 2rpx 8rpx rgba(16, 185, 129, 0.2);
+}
+
+/* 好友列表 */
+.friends-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 100rpx;
 }
 
 .friends-list {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 30rpx;
+  flex: 1;
+  padding: 0 20rpx;
+  overflow-y: auto;
 }
 
-.friend-item {
+/* 好友卡片 */
+.friend-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
   display: flex;
-  align-items: center;
-  padding: 30rpx 0;
-  border-bottom: 1rpx solid #f0f0f0;
+  gap: 16rpx;
+  align-items: flex-start;
+  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.friend-item:last-child {
-  border-bottom: none;
+.friend-card:active {
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.12);
+  transform: translateY(-2rpx);
 }
 
+/* 头像 */
 .friend-avatar {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  font-weight: bold;
-  margin-right: 30rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
+/* 信息区 */
 .friend-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.friend-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
 }
 
 .friend-name {
   font-size: 32rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 10rpx;
+  font-weight: 600;
+  color: #1f2937;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.friend-id {
+.friend-role {
   font-size: 24rpx;
-  color: #999;
+  color: #10b981;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
 }
 
-.friend-arrow {
-  font-size: 32rpx;
-  color: #ccc;
-  margin-left: 20rpx;
+.friend-bio {
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+.friend-tags {
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.friend-tag {
+  font-size: 20rpx;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+/* 预约按钮 */
+.book-btn {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 2rpx 8rpx rgba(16, 185, 129, 0.2);
+  padding: 0;
+  line-height: 1;
+}
+
+.book-btn:active {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.3);
+  transform: scale(0.92);
+}
+
+/* 空状态 */
 .empty {
   text-align: center;
-  padding: 100rpx 40rpx;
+  padding: 60rpx 40rpx;
+  color: #9ca3af;
 }
 
 .empty-icon {
-  font-size: 100rpx;
-  margin-bottom: 30rpx;
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
 }
 
 .empty-text {
   font-size: 32rpx;
-  color: #333;
-  margin-bottom: 15rpx;
+  color: #6b7280;
+  margin-bottom: 8rpx;
+  font-weight: 500;
 }
 
 .empty-desc {
   font-size: 24rpx;
-  color: #999;
+  color: #9ca3af;
+}
+
+/* 添加好友按钮 */
+.btn-add-friend {
+  position: fixed;
+  bottom: 20rpx;
+  left: 20rpx;
+  right: 20rpx;
+  width: calc(100% - 40rpx);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border-radius: 20rpx;
+  font-size: 32rpx;
+  padding: 16rpx 30rpx;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.2);
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.btn-add-friend:active {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 2rpx 8rpx rgba(16, 185, 129, 0.15);
+  transform: translateY(2rpx);
 }
 
