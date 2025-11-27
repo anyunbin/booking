@@ -224,7 +224,7 @@ Page({
     app.call({
       path: '/api/schedules',
       method: 'GET',
-      data: { userId: friendId }
+      data: { userId: friendId, isPublic: true }
     }).then((res) => {
       if (res && res.success) {
         res.data.forEach(schedule => {
