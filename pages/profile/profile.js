@@ -49,20 +49,18 @@ Page({
     }
 
     app.call({
-      path: '/api/users/${userId}',
-      method: 'GET',
-      }).then((res) => {
-        if (res.data && res.success) {
-          const userInfo = res.data
-          this.setData({ userInfo })
-          // 更新全局数据
-          app.globalData.userInfo = userInfo
-          wx.setStorageSync('userInfo', userInfo)
-        }
-      },
-      }).catch((err) => {
-        console.error('获取用户信息失败:', err)
+      path: `/api/users/${userId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res && res.success) {
+        const userInfo = res.data
+        this.setData({ userInfo })
+        // 更新全局数据
+        app.globalData.userInfo = userInfo
+        wx.setStorageSync('userInfo', userInfo)
       }
+    }).catch((err) => {
+      console.error('获取用户信息失败:', err)
     })
   },
 
@@ -115,44 +113,42 @@ Page({
     this.setData({ isSubmitting: true })
 
     app.call({
-      path: '/api/users/${userId}',
+      path: `/api/users/${userId}`,
       method: 'PATCH',
       data: {
         nickname: editNickname,
         name: editName,
         phone: editPhone,
         email: editEmail
-      },
-      }).then((res) => {
-        if (res.data && res.success) {
-          wx.showToast({
-            title: '修改成功',
-            icon: 'success'
-          })
-          
-          // 更新本地用户信息
-          const userInfo = { ...this.data.userInfo, ...res.data }
-          this.setData({ userInfo })
-          app.globalData.userInfo = userInfo
-          wx.setStorageSync('userInfo', userInfo)
-          
-          this.closeEditModal()
-        } else {
-          wx.showToast({
-            title: res.data?.message || '修改失败',
-            icon: 'none'
-          })
-        }
-        this.setData({ isSubmitting: false })
-      },
-      }).catch((err) => {
-        console.error('修改用户信息失败:', err)
+      }
+    }).then((res) => {
+      if (res && res.success) {
         wx.showToast({
-          title: '网络错误，请重试',
+          title: '修改成功',
+          icon: 'success'
+        })
+
+        // 更新本地用户信息
+        const userInfo = { ...this.data.userInfo, ...res.data }
+        this.setData({ userInfo })
+        app.globalData.userInfo = userInfo
+        wx.setStorageSync('userInfo', userInfo)
+
+        this.closeEditModal()
+      } else {
+        wx.showToast({
+          title: res?.message || '修改失败',
           icon: 'none'
         })
-        this.setData({ isSubmitting: false })
       }
+      this.setData({ isSubmitting: false })
+    }).catch((err) => {
+      console.error('修改用户信息失败:', err)
+      wx.showToast({
+        title: '网络错误，请重试',
+        icon: 'none'
+      })
+      this.setData({ isSubmitting: false })
     })
   },
 
@@ -233,30 +229,28 @@ Page({
         userId: userId,
         oldPassword: oldPassword,
         newPassword: newPassword
-      },
-      }).then((res) => {
-        if (res.data && res.success) {
-          wx.showToast({
-            title: '密码修改成功',
-            icon: 'success'
-          })
-          this.closePasswordModal()
-        } else {
-          wx.showToast({
-            title: res.data?.message || '密码修改失败',
-            icon: 'none'
-          })
-        }
-        this.setData({ isSubmitting: false })
-      },
-      }).catch((err) => {
-        console.error('修改密码失败:', err)
+      }
+    }).then((res) => {
+      if (res && res.success) {
         wx.showToast({
-          title: '网络错误，请重试',
+          title: '密码修改成功',
+          icon: 'success'
+        })
+        this.closePasswordModal()
+      } else {
+        wx.showToast({
+          title: res?.message || '密码修改失败',
           icon: 'none'
         })
-        this.setData({ isSubmitting: false })
       }
+      this.setData({ isSubmitting: false })
+    }).catch((err) => {
+      console.error('修改密码失败:', err)
+      wx.showToast({
+        title: '网络错误，请重试',
+        icon: 'none'
+      })
+      this.setData({ isSubmitting: false })
     })
   },
 
@@ -265,7 +259,7 @@ Page({
     wx.showModal({
       title: '确认退出',
       content: '确定要退出登录吗？',
-      }).then((res) => {
+      success: (res) => {
         if (res.confirm) {
           app.logout()
         }
