@@ -3,16 +3,9 @@ const app = getApp()
 
 Page({
   data: {
-    isLogin: true, // true: 登录模式, false: 注册模式
     isSubmitting: false,
-    // 登录表单
-    loginUsername: '',
-    loginPassword: '',
-    // 注册表单
-    registerUsername: '',
-    registerPassword: '',
-    registerPasswordConfirm: '',
-    registerNickname: ''
+    userInfo: null,
+    hasUserInfo: false
   },
 
   onLoad() {
@@ -33,80 +26,65 @@ Page({
     }
   },
 
-  // 切换到登录
-  switchToLogin() {
-    this.setData({ isLogin: true })
-  },
-
-  // 切换到注册
-  switchToRegister() {
-    this.setData({ isLogin: false })
-  },
-
-  // 登录表单输入
-  onLoginUsernameInput(e) {
-    this.setData({ loginUsername: e.detail.value })
-  },
-
-  onLoginPasswordInput(e) {
-    this.setData({ loginPassword: e.detail.value })
-  },
-
-  // 注册表单输入
-  onRegisterUsernameInput(e) {
-    this.setData({ registerUsername: e.detail.value })
-  },
-
-  onRegisterPasswordInput(e) {
-    this.setData({ registerPassword: e.detail.value })
-  },
-
-  onRegisterPasswordConfirmInput(e) {
-    this.setData({ registerPasswordConfirm: e.detail.value })
-  },
-
-  onRegisterNicknameInput(e) {
-    this.setData({ registerNickname: e.detail.value })
-  },
-
-  // 处理登录
-  async handleLogin() {
-    const { loginUsername, loginPassword } = this.data
-
-    if (!loginUsername || !loginPassword) {
-      wx.showToast({
-        title: '请输入用户名和密码',
-        icon: 'none'
-      })
-      return
-    }
-
+  // 微信登录
+  async handleWechatLogin() {
     this.setData({ isSubmitting: true })
 
     try {
-      console.log('开始登录请求...')
+      // 1. 获取用户信息
+      const userProfile = await new Promise((resolve, reject) => {
+        wx.getUserProfile({
+          desc: '用于完善会员资料',
+          success: resolve,
+          fail: reject
+        })
+      })
+
+      const userInfo = userProfile.userInfo
+
+      // 2. 获取登录凭证
+      const loginRes = await new Promise((resolve, reject) => {
+        wx.login({
+          success: resolve,
+          fail: reject
+        })
+      })
+
+      const code = loginRes.code
+
+      console.log('获取到登录凭证:', code)
+      console.log('用户信息:', userInfo)
+
+      // 3. 发送到后端进行登录
       const result = await app.call({
-        path: '/api/auth/login',
+        path: '/api/auth/wechat-login',
         method: 'POST',
         data: {
-          username: loginUsername,
-          password: loginPassword
+          code: code,
+          userInfo: {
+            nickName: userInfo.nickName,
+            avatarUrl: userInfo.avatarUrl,
+            gender: userInfo.gender,
+            province: userInfo.province,
+            city: userInfo.city,
+            country: userInfo.country
+          }
         }
       })
 
       console.log('登录响应:', result)
 
       if (result && result.success) {
-        const { userInfo, token } = result.data
+        const { userInfo: backendUserInfo, token } = result.data
 
         // 保存用户信息和token
-        wx.setStorageSync('userInfo', userInfo)
+        wx.setStorageSync('userInfo', backendUserInfo)
         wx.setStorageSync('token', token)
-        wx.setStorageSync('userId', userInfo.id)
+        wx.setStorageSync('userId', backendUserInfo.id)
 
         // 更新全局数据
-        app.globalData.userInfo = userInfo
-        app.globalData.userId = userInfo.id
+        app.globalData.userInfo = backendUserInfo
+        app.globalData.userId = backendUserInfo.id
         app.globalData.token = token
 
         wx.showToast({
@@ -128,89 +106,21 @@ Page({
         this.setData({ isSubmitting: false })
       }
     } catch (err) {
-      console.error('登录请求失败:', err)
-      wx.showToast({
-        title: '网络错误，请检查连接',
-        icon: 'none'
-      })
-      this.setData({ isSubmitting: false })
-    }
-  },
+      console.error('登录失败:', err)
 
-  // 处理注册
-  async handleRegister() {
-    const { registerUsername, registerPassword, registerPasswordConfirm, registerNickname } = this.data
-
-    // 验证输入
-    if (!registerUsername || registerUsername.length < 3 || registerUsername.length > 20) {
-      wx.showToast({
-        title: '用户名长度为3-20个字符',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (!registerPassword || registerPassword.length < 6) {
-      wx.showToast({
-        title: '密码至少6个字符',
-        icon: 'none'
-      })
-      return
-    }
-
-    if (registerPassword !== registerPasswordConfirm) {
-      wx.showToast({
-        title: '两次密码输入不一致',
-        icon: 'none'
-      })
-      return
-    }
-
-    this.setData({ isSubmitting: true })
-
-    try {
-      console.log('开始注册请求...')
-      const result = await app.call({
-        path: '/api/auth/register',
-        method: 'POST',
-        data: {
-          username: registerUsername,
-          password: registerPassword,
-          nickname: registerNickname || registerUsername
-        }
-      })
-
-      console.log('注册响应:', result)
-
-      if (result && result.success) {
+      // 判断是否是用户取消授权
+      if (err.errMsg && err.errMsg.includes('getUserProfile:fail auth deny')) {
         wx.showToast({
-          title: '注册成功，请登录',
-          icon: 'success'
-        })
-
-        // 切换到登录模式
-        this.setData({
-          isLogin: true,
-          loginUsername: registerUsername,
-          loginPassword: '',
-          registerUsername: '',
-          registerPassword: '',
-          registerPasswordConfirm: '',
-          registerNickname: ''
+          title: '您已取消授权，无法登录',
+          icon: 'none'
         })
       } else {
         wx.showToast({
-          title: result?.message || '注册失败',
+          title: '登录失败，请重试',
           icon: 'none'
         })
       }
-      this.setData({ isSubmitting: false })
-    } catch (err) {
-      console.error('注册请求失败:', err)
-      wx.showToast({
-        title: '网络错误，请检查连接',
-        icon: 'none'
-      })
+
       this.setData({ isSubmitting: false })
     }
   }

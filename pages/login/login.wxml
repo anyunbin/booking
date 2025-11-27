@@ -7,45 +7,28 @@
   </view>
 
   <view class="login-content">
-    <view class="tab-bar">
-      <view class="tab-item {{isLogin ? 'active' : ''}}" bindtap="switchToLogin">登录</view>
-      <view class="tab-item {{!isLogin ? 'active' : ''}}" bindtap="switchToRegister">注册</view>
+    <view class="login-description">
+      <view class="desc-title">欢迎使用</view>
+      <view class="desc-text">使用微信账号快速登录，无需注册</view>
     </view>
 
-    <view class="form-container">
-      <!-- 登录表单 -->
-      <view class="form-group" wx:if="{{isLogin}}">
-        <view class="input-wrapper">
-          <text class="input-icon">👤</text>
-          <input class="input" type="text" placeholder="请输入用户名" value="{{loginUsername}}" bindinput="onLoginUsernameInput" />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">🔒</text>
-          <input class="input" type="text" placeholder="请输入密码" value="{{loginPassword}}" bindinput="onLoginPasswordInput" />
-        </view>
-        <button class="submit-button" bindtap="handleLogin" loading="{{isSubmitting}}">登录</button>
-      </view>
+    <view class="login-button-group">
+      <button
+        class="wechat-login-button"
+        bindtap="handleWechatLogin"
+        loading="{{isSubmitting}}"
+        disabled="{{isSubmitting}}"
+      >
+        <text class="wechat-icon">🔐</text>
+        <text class="button-text">微信登录</text>
+      </button>
+    </view>
 
-      <!-- 注册表单 -->
-      <view class="form-group" wx:if="{{!isLogin}}">
-        <view class="input-wrapper">
-          <text class="input-icon">👤</text>
-          <input class="input" type="text" placeholder="请输入用户名（3-20个字符）" value="{{registerUsername}}" bindinput="onRegisterUsernameInput" />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">🔒</text>
-          <input class="input" type="text" placeholder="请输入密码（至少6个字符）" value="{{registerPassword}}" bindinput="onRegisterPasswordInput" />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">🔒</text>
-          <input class="input" type="text" placeholder="请确认密码" value="{{registerPasswordConfirm}}" bindinput="onRegisterPasswordConfirmInput" />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">📝</text>
-          <input class="input" type="text" placeholder="请输入昵称（可选）" value="{{registerNickname}}" bindinput="onRegisterNicknameInput" />
-        </view>
-        <button class="submit-button" bindtap="handleRegister" loading="{{isSubmitting}}">注册</button>
-      </view>
+    <view class="login-tips">
+      <view class="tips-title">登录说明</view>
+      <view class="tips-item">✓ 首次登录会自动创建账户</view>
+      <view class="tips-item">✓ 使用微信昵称作为用户名</view>
+      <view class="tips-item">✓ 您的信息仅用于账户管理</view>
     </view>
   </view>
 </view>
