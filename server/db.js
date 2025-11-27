@@ -24,7 +24,7 @@ function init() {
 function createTables() {
   return new Promise((resolve, reject) => {
     const tables = [
-      // 用户表（支持用户名密码登录）
+      // 用户表（支持用户名密码登录和微信登录）
       `CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         username TEXT UNIQUE,
@@ -34,6 +34,12 @@ function createTables() {
         name TEXT,
         phone TEXT,
         email TEXT,
+        wechat_openid TEXT UNIQUE,
+        wechat_unionid TEXT,
+        gender INTEGER,
+        province TEXT,
+        city TEXT,
+        country TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_login_at DATETIME

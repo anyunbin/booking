@@ -196,6 +196,129 @@ router.post('/change-password', async (req, res) => {
   }
 })
 
+// 微信登录
+router.post('/wechat-login', async (req, res) => {
+  try {
+    const { code, userInfo } = req.body
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: '登录凭证不能为空'
+      })
+    }
+
+    // 注意：这里需要使用微信官方接口来验证 code 并获取 openid
+    // 实际生产环境中，应该调用微信的 jscode2session 接口
+    // 为了演示，这里使用 code 作为 openid 的替代品
+    // 实际应该是：
+    // const response = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+    //   appid: WECHAT_APPID,
+    //   secret: WECHAT_SECRET,
+    //   js_code: code,
+    //   grant_type: 'authorization_code'
+    // })
+    // const openid = response.data.openid
+
+    // 为了演示，使用 code 作为 openid
+    const openid = code
+
+    // 检查用户是否已存在
+    const existingUsers = await db.query('SELECT * FROM users WHERE wechat_openid = ?', [openid])
+
+    let user
+    if (existingUsers.length > 0) {
+      // 用户已存在，更新最后登录时间和用户信息
+      user = existingUsers[0]
+
+      await db.run(
+        `UPDATE users SET
+          last_login_at = datetime("now"),
+          nickname = ?,
+          avatar_url = ?,
+          gender = ?,
+          province = ?,
+          city = ?,
+          country = ?,
+          updated_at = datetime("now")
+        WHERE id = ?`,
+        [
+          userInfo.nickName || user.nickname,
+          userInfo.avatarUrl || user.avatar_url,
+          userInfo.gender || user.gender,
+          userInfo.province || user.province,
+          userInfo.city || user.city,
+          userInfo.country || user.country,
+          user.id
+        ]
+      )
+
+      // 重新查询更新后的用户信息
+      const updatedUsers = await db.query('SELECT * FROM users WHERE id = ?', [user.id])
+      user = updatedUsers[0]
+    } else {
+      // 创建新用户
+      const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+      const nickname = userInfo.nickName || '微信用户'
+
+      await db.run(
+        `INSERT INTO users (
+          id, wechat_openid, nickname, avatar_url, name,
+          gender, province, city, country, created_at, last_login_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime("now"), datetime("now"))`,
+        [
+          userId,
+          openid,
+          nickname,
+          userInfo.avatarUrl,
+          nickname,
+          userInfo.gender,
+          userInfo.province,
+          userInfo.city,
+          userInfo.country
+        ]
+      )
+
+      // 查询新创建的用户
+      const newUsers = await db.query('SELECT * FROM users WHERE id = ?', [userId])
+      user = newUsers[0]
+    }
+
+    // 生成token
+    const token = crypto.createHash('sha256').update(user.id + Date.now()).digest('hex')
+
+    const responseUserInfo = {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      nickname: user.nickname,
+      avatar_url: user.avatar_url,
+      phone: user.phone,
+      email: user.email,
+      gender: user.gender,
+      province: user.province,
+      city: user.city,
+      country: user.country,
+      created_at: user.created_at,
+      last_login_at: new Date().toISOString()
+    }
+
+    res.json({
+      success: true,
+      data: {
+        userInfo: responseUserInfo,
+        token: token
+      }
+    })
+  } catch (error) {
+    console.error('微信登录错误:', error)
+    res.status(500).json({
+      success: false,
+      message: error.message
+    })
+  }
+})
+
 // 验证token（中间件）
 async function verifyToken(req, res, next) {
   const token = req.headers.authorization || req.query.token
