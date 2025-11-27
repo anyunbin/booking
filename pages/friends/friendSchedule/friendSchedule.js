@@ -46,20 +46,18 @@ Page({
   loadFriendInfo() {
     const { friendId } = this.data
     app.call({
-      path: '/api/users/${friendId}',
-      method: 'GET',
-      }).then((res) => {
-        if (res.success) {
-          this.setData({
-            friendName: res.data.nickname || res.data.name || `用户${friendId}`
-          })
-        }
-      },
-      }).catch(() => {
+      path: `/api/users/${friendId}`,
+      method: 'GET'
+    }).then((res) => {
+      if (res && res.success) {
         this.setData({
-          friendName: `用户${friendId}`
+          friendName: res.data.nickname || res.data.name || `用户${friendId}`
         })
       }
+    }).catch(() => {
+      this.setData({
+        friendName: `用户${friendId}`
+      })
     })
   },
 
@@ -225,67 +223,65 @@ Page({
     // 加载好友的公开日程
     app.call({
       path: '/api/schedules',
-      data: { friendId: ${friendId} },
       method: 'GET',
-      }).then((res) => {
-        if (res.success) {
-          res.data.forEach(schedule => {
-            const startTime = schedule.start_time || schedule.startTime
-            const endTime = schedule.end_time || schedule.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            const duration = endMinutes - startMinutes
-            const multiplier = Math.round(duration / minTimeUnitMinutes) // 跨几个时间单元
-            
-            // 标记所有被这个日程覆盖的单元格
-            const firstSlotMinutes = Math.floor(startMinutes / minTimeUnitMinutes) * minTimeUnitMinutes
-            let currentMinutes = firstSlotMinutes
-            let isFirstCellFound = false
-            
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${schedule.date}_${currentTime}`
-              
-              if (tableData[key]) {
-                if (!isFirstCellFound) {
-                  // 第一个单元格显示完整信息
-                  tableData[key] = {
-                    status: schedule.status === 'booked' ? 'booked' : schedule.status === 'pending' ? 'pending' : 'available',
-                    guestName: '',
-                    scheduleId: schedule.id,
-                    requestId: null,
-                    startTime: startTime,
-                    endTime: endTime,
-                    isFirstCell: true,
-                    spanCount: multiplier
-                  }
-                  isFirstCellFound = true
-                } else {
-                  // 后续单元格标记为延续
-                  tableData[key] = {
-                    status: schedule.status === 'booked' ? 'booked' : schedule.status === 'pending' ? 'pending' : 'available',
-                    guestName: '',
-                    scheduleId: schedule.id,
-                    requestId: null,
-                    startTime: startTime,
-                    endTime: endTime,
-                    isContinuation: true,
-                    spanCount: multiplier
-                  }
+      data: { friendId: friendId }
+    }).then((res) => {
+      if (res && res.success) {
+        res.data.forEach(schedule => {
+          const startTime = schedule.start_time || schedule.startTime
+          const endTime = schedule.end_time || schedule.endTime
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
+          const duration = endMinutes - startMinutes
+          const multiplier = Math.round(duration / minTimeUnitMinutes) // 跨几个时间单元
+
+          // 标记所有被这个日程覆盖的单元格
+          const firstSlotMinutes = Math.floor(startMinutes / minTimeUnitMinutes) * minTimeUnitMinutes
+          let currentMinutes = firstSlotMinutes
+          let isFirstCellFound = false
+
+          while (currentMinutes < endMinutes) {
+            const currentTime = this.minutesToTime(currentMinutes)
+            const key = `${schedule.date}_${currentTime}`
+
+            if (tableData[key]) {
+              if (!isFirstCellFound) {
+                // 第一个单元格显示完整信息
+                tableData[key] = {
+                  status: schedule.status === 'booked' ? 'booked' : schedule.status === 'pending' ? 'pending' : 'available',
+                  guestName: '',
+                  scheduleId: schedule.id,
+                  requestId: null,
+                  startTime: startTime,
+                  endTime: endTime,
+                  isFirstCell: true,
+                  spanCount: multiplier
+                }
+                isFirstCellFound = true
+              } else {
+                // 后续单元格标记为延续
+                tableData[key] = {
+                  status: schedule.status === 'booked' ? 'booked' : schedule.status === 'pending' ? 'pending' : 'available',
+                  guestName: '',
+                  scheduleId: schedule.id,
+                  requestId: null,
+                  startTime: startTime,
+                  endTime: endTime,
+                  isContinuation: true,
+                  spanCount: multiplier
                 }
               }
-              
-              currentMinutes += minTimeUnitMinutes
             }
-          })
-        }
-        this.setData({ tableData })
-        this.loadBookingData()
-      },
-      }).catch(() => {
-        this.setData({ tableData })
-        this.loadBookingData()
+
+            currentMinutes += minTimeUnitMinutes
+          }
+        })
       }
+      this.setData({ tableData })
+      this.loadBookingData()
+    }).catch(() => {
+      this.setData({ tableData })
+      this.loadBookingData()
     })
   },
 
@@ -297,67 +293,67 @@ Page({
     // 加载我向这个好友发起的预约请求
     app.call({
       path: '/api/requests',
-      data: { guestId: ${userId}, ownerId: ${friendId} },
       method: 'GET',
-      }).then((res) => {
-        if (res.success) {
-          const newTableData = { ...tableData }
-          
-          // 待审核的请求
-          res.data.filter(r => r.status === 'pending').forEach(request => {
-            const startTime = request.start_time || request.startTime
-            const endTime = request.end_time || request.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            
-            // 更新所有被这个请求覆盖的单元格（包括延续单元格）
-            let currentMinutes = startMinutes
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${request.date}_${currentTime}`
-              if (newTableData[key]) {
-                newTableData[key] = {
-                  ...newTableData[key],
-                  status: 'pending',
-                  guestName: '',
-                  requestId: request.id,
-                  note: request.note || ''
-                }
-              }
-              currentMinutes += minTimeUnitMinutes
-            }
-          })
+      data: { guestId: userId, ownerId: friendId }
+    }).then((res) => {
+      if (res && res.success) {
+        const newTableData = { ...tableData }
 
-          // 已预约的请求（已同意）
-          res.data.filter(r => r.status === 'approved').forEach(request => {
-            const startTime = request.start_time || request.startTime
-            const endTime = request.end_time || request.endTime
-            const startMinutes = this.timeToMinutes(startTime)
-            const endMinutes = this.timeToMinutes(endTime)
-            
-            // 更新所有被这个预约覆盖的单元格（包括延续单元格）
-            let currentMinutes = startMinutes
-            while (currentMinutes < endMinutes) {
-              const currentTime = this.minutesToTime(currentMinutes)
-              const key = `${request.date}_${currentTime}`
-              if (newTableData[key]) {
-                newTableData[key] = {
-                  ...newTableData[key],
-                  status: 'booked',
-                  guestName: '',
-                  requestId: request.id,
-                  note: request.note || ''
-                }
-              }
-              currentMinutes += minTimeUnitMinutes
-            }
-          })
+        // 待审核的请求
+        res.data.filter(r => r.status === 'pending').forEach(request => {
+          const startTime = request.start_time || request.startTime
+          const endTime = request.end_time || request.endTime
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
 
-          this.setData({ tableData: newTableData })
-          this.updateDateScheduleCounts()
-        }
-      },
-      }).catch(() => {}
+          // 更新所有被这个请求覆盖的单元格（包括延续单元格）
+          let currentMinutes = startMinutes
+          while (currentMinutes < endMinutes) {
+            const currentTime = this.minutesToTime(currentMinutes)
+            const key = `${request.date}_${currentTime}`
+            if (newTableData[key]) {
+              newTableData[key] = {
+                ...newTableData[key],
+                status: 'pending',
+                guestName: '',
+                requestId: request.id,
+                note: request.note || ''
+              }
+            }
+            currentMinutes += minTimeUnitMinutes
+          }
+        })
+
+        // 已预约的请求（已同意）
+        res.data.filter(r => r.status === 'approved').forEach(request => {
+          const startTime = request.start_time || request.startTime
+          const endTime = request.end_time || request.endTime
+          const startMinutes = this.timeToMinutes(startTime)
+          const endMinutes = this.timeToMinutes(endTime)
+
+          // 更新所有被这个预约覆盖的单元格（包括延续单元格）
+          let currentMinutes = startMinutes
+          while (currentMinutes < endMinutes) {
+            const currentTime = this.minutesToTime(currentMinutes)
+            const key = `${request.date}_${currentTime}`
+            if (newTableData[key]) {
+              newTableData[key] = {
+                ...newTableData[key],
+                status: 'booked',
+                guestName: '',
+                requestId: request.id,
+                note: request.note || ''
+              }
+            }
+            currentMinutes += minTimeUnitMinutes
+          }
+        })
+
+        this.setData({ tableData: newTableData })
+        this.updateDateScheduleCounts()
+      }
+    }).catch(() => {
+      console.error('加载预约数据失败')
     })
   },
 
@@ -513,30 +509,28 @@ Page({
         note: bookingNote,
         guestId: userId,
         guestName: app.getUserInfo()?.nickname || app.getUserInfo()?.name || '访客'
-      },
-      }).then((res) => {
-        wx.hideLoading()
-        if (res.success) {
-          wx.showToast({
-            title: '预约成功',
-            icon: 'success'
-          })
-          this.closeBookingModal()
-          this.loadTableData()
-        } else {
-          wx.showToast({
-            title: res.message || '预约失败',
-            icon: 'none'
-          })
-        }
-      },
-      }).catch(() => {
-        wx.hideLoading()
+      }
+    }).then((res) => {
+      wx.hideLoading()
+      if (res && res.success) {
         wx.showToast({
-          title: '网络错误',
+          title: '预约成功',
+          icon: 'success'
+        })
+        this.closeBookingModal()
+        this.loadTableData()
+      } else {
+        wx.showToast({
+          title: res?.message || '预约失败',
           icon: 'none'
         })
       }
+    }).catch(() => {
+      wx.hideLoading()
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      })
     })
   }
 })
